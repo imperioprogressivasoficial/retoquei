@@ -1,0 +1,34 @@
+# ============================================================
+# Retoquei — BullMQ Worker Dockerfile
+# ============================================================
+# This is a simple, single-stage image for the background
+# worker process. The worker is compiled separately via
+# `npm run worker:build` which outputs to dist/.
+# ============================================================
+
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Install production dependencies only
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
+
+# Generate Prisma client
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# Copy compiled worker bundle
+COPY dist ./dist
+
+ENV NODE_ENV=production
+
+# Worker does not expose a port — it connects to Redis and Postgres outbound.
+# Pass all required env vars via docker-compose or Kubernetes secrets.
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "require('ioredis'); process.exit(0)" || exit 1
+
+CMD ["node", "dist/worker/index.js"]

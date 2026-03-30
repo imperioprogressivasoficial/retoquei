@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(timeout 90 npx tsc --noEmit)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(taskkill /PID 7476 /F)",
+      "Bash(cmd /c \"taskkill /PID 7476 /F\")",
+      "Bash(cmd /c \"taskkill /PID 7476 /F 2>&1\")",
+      "Bash(curl -s --max-time 15 http://localhost:64860)",
+      "Bash(findstr \"64860\\\\|3000\")",
+      "Bash(cmd /c \"netstat -ano | findstr 64860\")",
+      "Bash(npm run:*)",
+      "Bash(curl -s --max-time 10 http://localhost:3001)",
+      "Bash(cmd /c \"curl -s --max-time 10 http://localhost:3001 2>&1\")",
+      "Bash(cmd /c \"curl -s http://localhost:3001/ 2>&1\")",
+      "Bash(cmd /c \"tasklist | findstr node\")",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"const http=require\\(''http''\\);http.get\\(''http://localhost:62809/register'',\\(r\\)=>console.log\\(''status:'',r.statusCode\\)\\).on\\(''error'',e=>console.log\\(''err:'',e.message\\)\\)\")",
+      "Bash(node -e \"const http=require\\(''http''\\);[''/register'',''/login'',''/dashboard''].forEach\\(p=>http.get\\(''http://localhost:3010''+p,r=>console.log\\(p,''->'',r.statusCode,r.headers.location||''''\\)\\).on\\(''error'',e=>console.log\\(p,''err''\\)\\)\\)\")",
+      "Bash(node -e \"const http=require\\(''http''\\);http.get\\(''http://localhost:3010/dashboard'',\\(r\\)=>console.log\\(''status:'',r.statusCode,r.headers.location||''''\\)\\).on\\(''error'',e=>console.log\\(''err:'',e.message\\)\\)\")",
+      "Bash(node -e \"const http=require\\(''http''\\);[''/register'',''/login'',''/onboarding/1'',''/dashboard''].forEach\\(p=>http.get\\(''http://localhost:3010''+p,\\(r\\)=>console.log\\(p,''->'',r.statusCode,r.headers.location||''''\\)\\).on\\(''error'',e=>console.log\\(p,''err:'',e.message\\)\\)\\)\")",
+      "Bash(npx prisma:*)"
+    ]
+  }
+}

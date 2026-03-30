@@ -1,0 +1,168 @@
+version: '3.9'
+
+# ============================================================
+# Retoquei — Docker Compose
+# ============================================================
+# Usage:
+#   Development:  docker compose up
+#   Production:   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ============================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # PostgreSQL 15
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: retoquei_postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: retoquei_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - retoquei_net
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d retoquei_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ----------------------------------------------------------
+  # Redis 7
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: retoquei_redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - retoquei_net
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ----------------------------------------------------------
+  # Redis Commander (optional GUI — dev only)
+  # Access at: http://localhost:8081
+  # ----------------------------------------------------------
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: retoquei_redis_commander
+    restart: unless-stopped
+    ports:
+      - '8081:8081'
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    networks:
+      - retoquei_net
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - tools
+
+  # ----------------------------------------------------------
+  # Next.js App
+  # ----------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: retoquei_app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/retoquei_db
+      REDIS_URL: redis://redis:6379
+      UPSTASH_REDIS_REST_URL: ${UPSTASH_REDIS_REST_URL:-}
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN:-}
+      WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION:-v19.0}
+      WHATSAPP_MOCK_MODE: ${WHATSAPP_MOCK_MODE:-true}
+      ENABLE_REAL_WHATSAPP: ${ENABLE_REAL_WHATSAPP:-false}
+      ADMIN_SECRET_KEY: ${ADMIN_SECRET_KEY}
+    networks:
+      - retoquei_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3000/api/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ----------------------------------------------------------
+  # BullMQ Worker
+  # ----------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: retoquei_worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/retoquei_db
+      REDIS_URL: redis://redis:6379
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION:-v19.0}
+      WHATSAPP_MOCK_MODE: ${WHATSAPP_MOCK_MODE:-true}
+      ENABLE_REAL_WHATSAPP: ${ENABLE_REAL_WHATSAPP:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@retoquei.com.br}
+      ADMIN_SECRET_KEY: ${ADMIN_SECRET_KEY}
+    networks:
+      - retoquei_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  retoquei_net:
+    driver: bridge
