@@ -13,19 +13,25 @@ export default async function CustomersPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
+  let tenantId: string | null = null
+  let customers: any[] = []
 
-  const customers = await prisma.customer.findMany({
-    where: { tenantId, deletedAt: null },
-    include: { metrics: true },
-    orderBy: { updatedAt: 'desc' },
-    take: 500,
-  })
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      include: { ownedTenants: { take: 1 } },
+    })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId ?? null
+
+    if (tenantId) {
+      customers = await prisma.customer.findMany({
+        where: { tenantId, deletedAt: null },
+        include: { metrics: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 500,
+      })
+    }
+  } catch { }
 
   const data = customers.map((c) => ({
     id: c.id,

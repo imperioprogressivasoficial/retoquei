@@ -24,18 +24,20 @@ export default async function CampaignsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
+  let tenantId: string | null = null
+  let campaigns: any[] = []
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id }, include: { ownedTenants: { take: 1 } } })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId ?? null
 
-  const campaigns = await prisma.campaign.findMany({
-    where: { tenantId },
-    include: { segment: true, template: true },
-    orderBy: { createdAt: 'desc' },
-  })
+    if (tenantId) {
+      campaigns = await prisma.campaign.findMany({
+        where: { tenantId },
+        include: { segment: true, template: true },
+        orderBy: { createdAt: 'desc' },
+      })
+    }
+  } catch { }
 
   return (
     <div>

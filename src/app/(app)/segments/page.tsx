@@ -16,17 +16,19 @@ export default async function SegmentsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
+  let tenantId: string | null = null
+  let segments: any[] = []
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id }, include: { ownedTenants: { take: 1 } } })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId ?? null
 
-  const segments = await prisma.segment.findMany({
-    where: { tenantId, isActive: true },
-    orderBy: [{ isSystem: 'desc' }, { customerCount: 'desc' }],
-  })
+    if (tenantId) {
+      segments = await prisma.segment.findMany({
+        where: { tenantId, isActive: true },
+        orderBy: [{ isSystem: 'desc' }, { customerCount: 'desc' }],
+      })
+    }
+  } catch { }
 
   const systemSegments = segments.filter((s) => s.isSystem)
   const customSegments = segments.filter((s) => !s.isSystem)

@@ -17,18 +17,19 @@ export default async function TeamPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
-
-  const members = await prisma.tenantUser.findMany({
-    where: { tenantId },
-    include: { user: true },
-    orderBy: { invitedAt: 'asc' },
-  })
+  let tenantId: string | null = null
+  let members: any[] = []
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id }, include: { ownedTenants: { take: 1 } } })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId ?? null
+    if (tenantId) {
+      members = await prisma.tenantUser.findMany({
+        where: { tenantId },
+        include: { user: true },
+        orderBy: { invitedAt: 'asc' },
+      })
+    }
+  } catch { }
 
   return (
     <div>

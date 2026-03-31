@@ -15,17 +15,19 @@ export default async function IntegrationsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
+  let tenantId: string | null = null
+  let connectors: any[] = []
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id }, include: { ownedTenants: { take: 1 } } })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId ?? null
 
-  const connectors = await prisma.bookingConnector.findMany({
-    where: { tenantId },
-    orderBy: { createdAt: 'asc' },
-  })
+    if (tenantId) {
+      connectors = await prisma.bookingConnector.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'asc' },
+      })
+    }
+  } catch { }
 
   return (
     <div>

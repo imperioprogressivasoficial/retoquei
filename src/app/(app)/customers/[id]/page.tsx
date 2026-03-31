@@ -18,27 +18,30 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
-
-  const customer = await prisma.customer.findFirst({
-    where: { id: params.id, tenantId, deletedAt: null },
-    include: {
-      metrics: true,
-      appointments: {
-        include: { service: true, professional: true },
-        orderBy: { scheduledAt: 'desc' },
-        take: 20,
-      },
-      segmentMemberships: {
-        include: { segment: true },
-      },
-    },
-  })
+  let customer: any = null
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      include: { ownedTenants: { take: 1 } },
+    })
+    const tenantId = dbUser?.ownedTenants[0]?.tenantId
+    if (tenantId) {
+      customer = await prisma.customer.findFirst({
+        where: { id: params.id, tenantId, deletedAt: null },
+        include: {
+          metrics: true,
+          appointments: {
+            include: { service: true, professional: true },
+            orderBy: { scheduledAt: 'desc' },
+            take: 20,
+          },
+          segmentMemberships: {
+            include: { segment: true },
+          },
+        },
+      })
+    }
+  } catch { }
 
   if (!customer) notFound()
 
@@ -71,10 +74,9 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
                 </div>
               </div>
             </div>
-            {/* Tags */}
             {customer.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {customer.tags.map((tag) => (
+                {customer.tags.map((tag: string) => (
                   <span key={tag} className="rounded-full bg-white/5 border border-border px-2 py-0.5 text-xs text-muted-foreground">
                     {tag}
                   </span>
@@ -134,7 +136,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
               <p className="text-sm text-muted-foreground">Nenhum agendamento registrado</p>
             ) : (
               <div className="space-y-3">
-                {customer.appointments.map((appt) => (
+                {customer.appointments.map((appt: any) => (
                   <div key={appt.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                     <div>
                       <p className="text-sm text-white">{appt.service?.name ?? 'Serviço não especificado'}</p>
@@ -164,7 +166,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
               <p className="text-sm text-muted-foreground">Nenhum segmento</p>
             ) : (
               <div className="flex flex-col gap-2">
-                {customer.segmentMemberships.map((m) => (
+                {customer.segmentMemberships.map((m: any) => (
                   <span key={m.segmentId} className="rounded-lg border border-border bg-white/5 px-3 py-2 text-xs text-muted-foreground">
                     {m.segment.name}
                   </span>

@@ -21,17 +21,21 @@ export default async function TemplatesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
+  let tenantId: string | null = null
+  let templates: any[] = []
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id }, include: { ownedTenants: { take: 1 } } })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId ?? null
 
-  const templates = await prisma.messageTemplate.findMany({
-    where: { OR: [{ tenantId }, { isSystem: true }] },
-    orderBy: [{ isSystem: 'desc' }, { createdAt: 'desc' }],
-  })
+    if (tenantId) {
+      templates = await prisma.messageTemplate.findMany({
+        where: { OR: [{ tenantId }, { isSystem: true }] },
+        orderBy: [{ isSystem: 'desc' }, { createdAt: 'desc' }],
+      })
+    } else {
+      templates = await prisma.messageTemplate.findMany({ where: { isSystem: true } })
+    }
+  } catch { }
 
   return (
     <div>

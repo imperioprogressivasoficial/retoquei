@@ -32,18 +32,20 @@ export default async function FlowsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
-  if (!tenantId) redirect('/onboarding/1')
+  let tenantId: string | null = null
+  let flows: any[] = []
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id }, include: { ownedTenants: { take: 1 } } })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId ?? null
 
-  const flows = await prisma.automationFlow.findMany({
-    where: { tenantId },
-    orderBy: { createdAt: 'asc' },
-    include: { steps: true },
-  })
+    if (tenantId) {
+      flows = await prisma.automationFlow.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'asc' },
+        include: { steps: true },
+      })
+    }
+  } catch { }
 
   return (
     <div>
