@@ -56,7 +56,7 @@ export default function LoginPage() {
       })
       if (error) throw error
       toast.success('Login realizado com sucesso!')
-      router.push('/app/dashboard')
+      router.push('/dashboard')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao fazer login'
       toast.error(message === 'Invalid login credentials' ? 'E-mail ou senha incorretos' : message)

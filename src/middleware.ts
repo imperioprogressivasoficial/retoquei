@@ -83,7 +83,7 @@ export async function middleware(request: NextRequest) {
       user.app_metadata?.onboarding_complete === true
 
     if (onboardingComplete && pathname === ONBOARDING_PREFIX) {
-      return NextResponse.redirect(new URL('/app/dashboard', request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 

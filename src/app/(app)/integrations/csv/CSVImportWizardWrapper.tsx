@@ -34,7 +34,7 @@ export function CSVImportWizardWrapper({ connectorId }: Props) {
           importType={importType}
           connectorId={connectorId}
           onComplete={() => {
-            setTimeout(() => router.push('/app/customers'), 1500)
+            setTimeout(() => router.push('/customers'), 1500)
           }}
         />
       </div>

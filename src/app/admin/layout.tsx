@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/login')
 
   const dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id } })
-  if (!dbUser?.isPlatformAdmin) redirect('/app/dashboard')
+  if (!dbUser?.isPlatformAdmin) redirect('/dashboard')
 
   return (
     <div className="flex h-screen bg-[#0B0B0B]">
@@ -50,7 +50,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           })}
         </nav>
         <div className="p-3 border-t border-border">
-          <Link href="/app/dashboard" className="text-xs text-muted-foreground hover:text-white">← Voltar ao app</Link>
+          <Link href="/dashboard" className="text-xs text-muted-foreground hover:text-white">← Voltar ao app</Link>
         </div>
       </aside>
       <main className="flex-1 overflow-y-auto">{children}</main>

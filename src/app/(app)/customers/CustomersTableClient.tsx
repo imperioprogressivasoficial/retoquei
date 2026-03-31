@@ -89,7 +89,7 @@ export function CustomersTableClient({ data }: { data: CustomerRow[] }) {
       columns={columns}
       data={data}
       emptyMessage="Nenhum cliente encontrado. Importe dados via Integrações."
-      onRowClick={(row) => router.push(`/app/customers/${row.id}`)}
+      onRowClick={(row) => router.push(`/customers/${row.id}`)}
     />
   )
 }

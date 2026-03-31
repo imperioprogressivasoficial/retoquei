@@ -58,7 +58,7 @@ export default async function IntegrationsPage() {
           <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Adicionar Conector</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {/* CSV */}
-            <Link href="/app/integrations/csv" className="group rounded-xl border border-border bg-[#1E1E1E] p-5 hover:border-gold/30 transition-all">
+            <Link href="/integrations/csv" className="group rounded-xl border border-border bg-[#1E1E1E] p-5 hover:border-gold/30 transition-all">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                   <FileText className="h-5 w-5 text-blue-400" />
@@ -77,7 +77,7 @@ export default async function IntegrationsPage() {
             </Link>
 
             {/* Webhook */}
-            <Link href="/app/integrations/webhook" className="group rounded-xl border border-border bg-[#1E1E1E] p-5 hover:border-gold/30 transition-all">
+            <Link href="/integrations/webhook" className="group rounded-xl border border-border bg-[#1E1E1E] p-5 hover:border-gold/30 transition-all">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
                   <Webhook className="h-5 w-5 text-purple-400" />

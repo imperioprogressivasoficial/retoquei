@@ -51,7 +51,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
       <div className="p-6 max-w-4xl mx-auto space-y-6">
 
         {/* Back */}
-        <Link href="/app/customers" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors">
+        <Link href="/customers" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors">
           <ChevronLeft className="h-4 w-4" /> Voltar para Clientes
         </Link>
 
