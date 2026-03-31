@@ -93,83 +93,79 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { include: { tenant: true }, take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenant?.id
-  const tenantName = dbUser?.ownedTenants[0]?.tenant?.name ?? 'Seu Salão'
-  if (!tenantId) redirect('/onboarding/1')
+  // Load data safely — fall back to empty state if DB is unavailable
+  let tenantName = 'Meu Salão'
+  let totalCustomers = 0, newCustomers = 0, recurringCustomers = 0, vipCustomers = 0
+  let atRiskCustomers = 0, lostCustomers = 0, messagesSent = 0, messagesDelivered = 0
+  let avgTicket = 0, avgLtv = 0, avgDays = 0
+  let evolutionData: { month: string; total: number; new: number; recurring: number }[] = []
 
-  // ── KPIs ─────────────────────────────────────────────────────────────────
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      include: { ownedTenants: { include: { tenant: true }, take: 1 } },
+    })
+    const tenantId = dbUser?.ownedTenants[0]?.tenant?.id
+    tenantName = dbUser?.ownedTenants[0]?.tenant?.name ?? 'Meu Salão'
 
-  const [
-    totalCustomers,
-    newCustomers,
-    recurringCustomers,
-    vipCustomers,
-    atRiskCustomers,
-    lostCustomers,
-    messagesSent,
-    messagesDelivered,
-    recoveredRevenue,
-  ] = await Promise.all([
-    prisma.customer.count({ where: { tenantId, deletedAt: null } }),
-    prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'NEW' } }),
-    prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'RECURRING' } }),
-    prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'VIP' } }),
-    prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'AT_RISK' } }),
-    prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'LOST' } }),
-    prisma.outboundMessage.count({ where: { tenantId, status: { in: ['SENT', 'DELIVERED', 'READ'] } } }),
-    prisma.outboundMessage.count({ where: { tenantId, status: { in: ['DELIVERED', 'READ'] } } }),
-    prisma.customerMetrics.aggregate({ where: { tenantId }, _sum: { ltv: true } }),
-  ])
+    if (tenantId) {
+      const [tc, nc, rc, vc, arc, lc, ms, md] = await Promise.all([
+        prisma.customer.count({ where: { tenantId, deletedAt: null } }),
+        prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'NEW' } }),
+        prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'RECURRING' } }),
+        prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'VIP' } }),
+        prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'AT_RISK' } }),
+        prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: 'LOST' } }),
+        prisma.outboundMessage.count({ where: { tenantId, status: { in: ['SENT', 'DELIVERED', 'READ'] } } }),
+        prisma.outboundMessage.count({ where: { tenantId, status: { in: ['DELIVERED', 'READ'] } } }),
+      ])
+      totalCustomers = tc; newCustomers = nc; recurringCustomers = rc; vipCustomers = vc
+      atRiskCustomers = arc; lostCustomers = lc; messagesSent = ms; messagesDelivered = md
 
-  const avgMetrics = await prisma.customerMetrics.aggregate({
-    where: { tenantId },
-    _avg: { avgTicket: true, avgDaysBetweenVisits: true, ltv: true },
-  })
+      const avgMetrics = await prisma.customerMetrics.aggregate({
+        where: { tenantId },
+        _avg: { avgTicket: true, avgDaysBetweenVisits: true, ltv: true },
+      })
+      avgTicket = Math.round(avgMetrics._avg.avgTicket ?? 0)
+      avgLtv = Math.round(avgMetrics._avg.ltv ?? 0)
+      avgDays = Math.round(avgMetrics._avg.avgDaysBetweenVisits ?? 0)
+
+      evolutionData = await Promise.all(
+        Array.from({ length: 12 }, (_, i) => {
+          const monthDate = subMonths(new Date(), 11 - i)
+          const start = startOfMonth(monthDate)
+          const end = endOfMonth(monthDate)
+          const month = format(monthDate, 'yyyy-MM')
+          return Promise.all([
+            prisma.customer.count({ where: { tenantId, deletedAt: null, createdAt: { lte: end } } }),
+            prisma.customer.count({ where: { tenantId, deletedAt: null, createdAt: { gte: start, lte: end } } }),
+            prisma.customer.count({ where: { tenantId, deletedAt: null, lifecycleStage: { in: ['RECURRING', 'VIP'] }, createdAt: { lte: end } } }),
+          ]).then(([total, newC, recurring]) => ({ month, total, new: newC, recurring }))
+        }),
+      )
+    }
+  } catch {
+    // DB unavailable — show zeros, user can still navigate the app
+  }
+
+  if (evolutionData.length === 0) {
+    evolutionData = Array.from({ length: 12 }, (_, i) => ({
+      month: format(subMonths(new Date(), 11 - i), 'yyyy-MM'),
+      total: 0, new: 0, recurring: 0,
+    }))
+  }
 
   const retentionRate = totalCustomers > 0
-    ? Math.round(((recurringCustomers + vipCustomers) / totalCustomers) * 100)
-    : 0
-
+    ? Math.round(((recurringCustomers + vipCustomers) / totalCustomers) * 100) : 0
   const deliveryRate = messagesSent > 0
-    ? Math.round((messagesDelivered / messagesSent) * 100)
-    : 0
-
-  // ── Chart data (last 12 months) ────────────────────────────────────────
-
-  const evolutionData = await Promise.all(
-    Array.from({ length: 12 }, (_, i) => {
-      const monthDate = subMonths(new Date(), 11 - i)
-      const start = startOfMonth(monthDate)
-      const end = endOfMonth(monthDate)
-      const month = format(monthDate, 'yyyy-MM')
-
-      return Promise.all([
-        prisma.customer.count({ where: { tenantId, deletedAt: null, createdAt: { lte: end } } }),
-        prisma.customer.count({ where: { tenantId, deletedAt: null, createdAt: { gte: start, lte: end } } }),
-        prisma.customer.count({
-          where: {
-            tenantId, deletedAt: null,
-            lifecycleStage: { in: ['RECURRING', 'VIP'] },
-            createdAt: { lte: end },
-          },
-        }),
-      ]).then(([total, newC, recurring]) => ({ month, total, new: newC, recurring }))
-    }),
-  )
-
-  // ── Segment distribution for donut ────────────────────────────────────
+    ? Math.round((messagesDelivered / messagesSent) * 100) : 0
 
   const segmentData = [
-    { name: 'Novos',      value: newCustomers,        color: '#3b82f6' },
-    { name: 'Ativos',     value: totalCustomers - newCustomers - recurringCustomers - vipCustomers - atRiskCustomers - lostCustomers, color: '#22c55e' },
-    { name: 'Recorrentes',value: recurringCustomers,  color: '#10b981' },
-    { name: 'VIP',        value: vipCustomers,        color: '#C9A14A' },
-    { name: 'Em Risco',   value: atRiskCustomers,     color: '#f59e0b' },
-    { name: 'Perdidos',   value: lostCustomers,       color: '#ef4444' },
+    { name: 'Novos',       value: newCustomers,       color: '#3b82f6' },
+    { name: 'Recorrentes', value: recurringCustomers, color: '#10b981' },
+    { name: 'VIP',         value: vipCustomers,       color: '#C9A14A' },
+    { name: 'Em Risco',    value: atRiskCustomers,    color: '#f59e0b' },
+    { name: 'Perdidos',    value: lostCustomers,      color: '#ef4444' },
   ].filter((s) => s.value > 0)
 
   const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(n)
@@ -201,18 +197,18 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <KPICard
             title="Ticket Médio"
-            value={fmtCurrency(avgMetrics._avg.avgTicket ?? 0)}
+            value={fmtCurrency(avgTicket)}
             icon={<BarChart2 className="h-4 w-4" />}
           />
           <KPICard
             title="LTV Médio"
-            value={fmtCurrency(avgMetrics._avg.ltv ?? 0)}
+            value={fmtCurrency(avgLtv)}
             variant="gold"
             icon={<DollarSign className="h-4 w-4" />}
           />
           <KPICard
             title="Intervalo Médio"
-            value={`${Math.round(avgMetrics._avg.avgDaysBetweenVisits ?? 0)} dias`}
+            value={`${avgDays} dias`}
             icon={<RefreshCw className="h-4 w-4" />}
           />
           <KPICard
