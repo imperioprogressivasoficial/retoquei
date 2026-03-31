@@ -26,9 +26,9 @@ export default async function CampaignsPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { supabaseId: user.id },
-    include: { tenantUsers: { take: 1 } },
+    include: { ownedTenants: { take: 1 } },
   })
-  const tenantId = dbUser?.tenantUsers[0]?.tenantId
+  const tenantId = dbUser?.ownedTenants[0]?.tenantId
   if (!tenantId) redirect('/onboarding/1')
 
   const campaigns = await prisma.campaign.findMany({

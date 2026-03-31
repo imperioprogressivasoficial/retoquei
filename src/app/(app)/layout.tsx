@@ -37,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const dbUser = await prisma.user.findUnique({
     where: { supabaseId: user.id },
     include: {
-      tenantUsers: {
+      ownedTenants: {
         include: { tenant: true },
         orderBy: { invitedAt: 'asc' },
         take: 1,
@@ -45,11 +45,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     },
   })
 
-  if (!dbUser || dbUser.tenantUsers.length === 0) {
+  if (!dbUser || dbUser.ownedTenants.length === 0) {
     redirect('/onboarding/1')
   }
 
-  const tenant = dbUser.tenantUsers[0].tenant
+  const tenant = dbUser.ownedTenants[0].tenant
 
   // Check connector gate — must have at least one connected connector
   const connectorCount = await prisma.bookingConnector.count({

@@ -95,10 +95,10 @@ export default async function DashboardPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { supabaseId: user.id },
-    include: { tenantUsers: { include: { tenant: true }, take: 1 } },
+    include: { ownedTenants: { include: { tenant: true }, take: 1 } },
   })
-  const tenantId = dbUser?.tenantUsers[0]?.tenant?.id
-  const tenantName = dbUser?.tenantUsers[0]?.tenant?.name ?? 'Seu Salão'
+  const tenantId = dbUser?.ownedTenants[0]?.tenant?.id
+  const tenantName = dbUser?.ownedTenants[0]?.tenant?.name ?? 'Seu Salão'
   if (!tenantId) redirect('/onboarding/1')
 
   // ── KPIs ─────────────────────────────────────────────────────────────────

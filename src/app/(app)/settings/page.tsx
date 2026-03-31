@@ -11,9 +11,9 @@ export default async function SettingsPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { supabaseId: user.id },
-    include: { tenantUsers: { include: { tenant: true }, take: 1 } },
+    include: { ownedTenants: { include: { tenant: true }, take: 1 } },
   })
-  const tenant = dbUser?.tenantUsers[0]?.tenant
+  const tenant = dbUser?.ownedTenants[0]?.tenant
   if (!tenant) redirect('/onboarding/1')
 
   return (
