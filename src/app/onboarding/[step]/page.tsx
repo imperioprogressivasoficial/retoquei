@@ -151,32 +151,21 @@ function Step2({ onNext }: { onNext: () => void }) {
   )
 }
 
-// ── Step 3: Connect booking system (CRITICAL GATE) ─────────────────────────
+// ── Step 3: Connect booking system (optional) ──────────────────────────────
 
 function Step3({ onNext }: { onNext: () => void }) {
   const router = useRouter()
-  const isDevMode = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
 
   function handleCSV() {
-    if (isDevMode) {
-      // In dev mode, set has_connector = true and skip to step 4
-      const existing = document.cookie.split(';').find(c => c.trim().startsWith('dev_user='))
-      const val = existing ? JSON.parse(decodeURIComponent(existing.split('=')[1])) : { id: 'dev-user', email: 'dev@retoquei.com' }
-      val.user_metadata = { ...val.user_metadata, has_connector: true }
-      document.cookie = `dev_user=${encodeURIComponent(JSON.stringify(val))};path=/`
-      onNext()
-      return
-    }
     router.push('/integrations/csv')
   }
 
   return (
     <div className="rounded-2xl border border-border bg-[#1E1E1E] p-8 space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Conecte sua plataforma de agendamentos</h1>
+        <h1 className="text-xl font-bold text-white">Conecte sua fonte de dados</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          O Retoquei precisa de uma fonte de dados de agendamentos para funcionar.
-          Esta etapa é obrigatória.
+          Importe seus clientes e agendamentos. Você pode fazer isso agora ou depois.
         </p>
       </div>
 
@@ -220,11 +209,12 @@ function Step3({ onNext }: { onNext: () => void }) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-        <p className="text-xs text-amber-400">
-          ⚠️ Você não poderá acessar o dashboard sem conectar uma plataforma de agendamentos.
-        </p>
-      </div>
+      <button
+        onClick={onNext}
+        className="w-full flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm text-muted-foreground hover:text-white hover:border-white/20 transition-colors"
+      >
+        Pular, conectar depois
+      </button>
     </div>
   )
 }
@@ -310,6 +300,18 @@ function Step5({ onNext }: { onNext: () => void }) {
 // ── Step 6: Ready ────────────────────────────────────────────────────────
 
 function Step6({ onFinish }: { onFinish: () => void }) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleFinish() {
+    setLoading(true)
+    await fetch('/api/users/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ onboardingComplete: true }),
+    }).catch(() => {})
+    onFinish()
+  }
+
   return (
     <div className="rounded-2xl border border-border bg-[#1E1E1E] p-8 space-y-6 text-center">
       <div className="mx-auto h-16 w-16 rounded-2xl bg-gold/15 flex items-center justify-center">
@@ -322,10 +324,11 @@ function Step6({ onFinish }: { onFinish: () => void }) {
         </p>
       </div>
       <button
-        onClick={onFinish}
-        className="w-full flex items-center justify-center gap-2 rounded-lg bg-gold py-2.5 text-sm font-semibold text-[#0B0B0B] hover:bg-gold/90 transition-colors"
+        onClick={handleFinish}
+        disabled={loading}
+        className="w-full flex items-center justify-center gap-2 rounded-lg bg-gold py-2.5 text-sm font-semibold text-[#0B0B0B] hover:bg-gold/90 transition-colors disabled:opacity-50"
       >
-        Ir para o Dashboard <ArrowRight className="h-4 w-4" />
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><span>Ir para o Dashboard</span><ArrowRight className="h-4 w-4" /></>}
       </button>
     </div>
   )

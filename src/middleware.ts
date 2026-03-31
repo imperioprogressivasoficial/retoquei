@@ -46,12 +46,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl)
     }
 
-    const hasConnector = user.user_metadata?.has_connector === true ||
-      user.app_metadata?.has_connector === true
-
-    if (!hasConnector) {
-      return NextResponse.redirect(new URL('/onboarding/3', request.url))
-    }
+    // Connector is optional — users can connect data sources after onboarding
   }
 
   // ── 4. Protect /admin/* routes ────────────────────────────────────────────
