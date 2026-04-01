@@ -1,10 +1,11 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Webhook, Lock, CheckCircle, ArrowRight, Loader2 } from 'lucide-react'
+import { FileText, Webhook, Lock, CheckCircle, ArrowRight, Loader2, Smartphone, RefreshCw, ExternalLink, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
+import { RetoqueiLogoMark } from '@/components/ui/RetoqueiLogo'
 
 // ---------------------------------------------------------------------------
 // Onboarding Wizard — 6-step setup flow
@@ -20,7 +21,7 @@ export default function OnboardingStepPage() {
       <div className="w-full max-w-lg">
         {/* Logo */}
         <div className="flex items-center gap-2 justify-center mb-8">
-          <div className="h-9 w-9 rounded-xl bg-gold flex items-center justify-center text-[#0B0B0B] font-black text-xl">Q</div>
+          <RetoqueiLogoMark size={36} />
           <span className="text-white font-semibold text-lg">Retoquei</span>
         </div>
 
@@ -247,52 +248,122 @@ function Step4({ onNext }: { onNext: () => void }) {
   )
 }
 
-// ── Step 5: WhatsApp ─────────────────────────────────────────────────────
+// ── Step 5: WhatsApp via QR code ─────────────────────────────────────────
 
 function Step5({ onNext }: { onNext: () => void }) {
-  const [useSandbox, setUseSandbox] = useState(true)
+  const [qrBase64, setQrBase64] = useState<string | null>(null)
+  const [loadingQR, setLoadingQR] = useState(false)
+  const [connected, setConnected] = useState(false)
+  const [qrError, setQrError] = useState('')
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const checkStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/whatsapp/status', { cache: 'no-store' })
+      const data = await res.json() as { state: string }
+      if (data.state === 'open') {
+        setConnected(true)
+        setQrBase64(null)
+        if (pollRef.current) clearInterval(pollRef.current)
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => {
+    checkStatus()
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [checkStatus])
+
+  async function handleGetQR() {
+    setLoadingQR(true)
+    setQrError('')
+    try {
+      const res = await fetch('/api/whatsapp/qr', { cache: 'no-store' })
+      const data = await res.json() as { base64?: string; error?: string }
+      if (data.error) { setQrError(data.error); return }
+      setQrBase64(data.base64 ?? null)
+      // Poll status every 3s while waiting for scan
+      if (pollRef.current) clearInterval(pollRef.current)
+      pollRef.current = setInterval(checkStatus, 3000)
+    } catch (e) {
+      setQrError((e as Error).message)
+    } finally {
+      setLoadingQR(false)
+    }
+  }
 
   return (
-    <div className="rounded-2xl border border-border bg-[#1E1E1E] p-8 space-y-6">
+    <div className="rounded-2xl border border-border bg-[#1E1E1E] p-8 space-y-5">
       <div>
         <h1 className="text-xl font-bold text-white">Conecte o WhatsApp</h1>
-        <p className="text-sm text-muted-foreground mt-1">Configure a API do WhatsApp para envio de mensagens</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Escaneie o QR code com seu WhatsApp para enviar mensagens automaticamente
+        </p>
       </div>
 
-      <div className="space-y-3">
-        <button
-          onClick={() => setUseSandbox(true)}
-          className={`w-full flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${useSandbox ? 'border-gold bg-gold/5' : 'border-border hover:border-gold/30'}`}
-        >
-          <div className={`mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center ${useSandbox ? 'border-gold' : 'border-border'}`}>
-            {useSandbox && <div className="h-2 w-2 rounded-full bg-gold" />}
-          </div>
+      {connected ? (
+        <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 text-green-400 shrink-0" />
           <div>
-            <p className="text-sm font-semibold text-white">Modo Sandbox (recomendado para testes)</p>
-            <p className="text-xs text-muted-foreground">Mensagens serão logadas no console. Nenhuma API real necessária.</p>
+            <p className="text-sm font-semibold text-white">WhatsApp conectado!</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Pronto para enviar mensagens automáticas</p>
           </div>
-        </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* QR Code display */}
+          <div className="flex justify-center">
+            {loadingQR ? (
+              <div className="h-48 w-48 rounded-xl border border-border flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : qrBase64 ? (
+              <div className="rounded-xl border-2 border-gold/40 p-2.5 bg-white inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={qrBase64} alt="WhatsApp QR Code" className="h-44 w-44" />
+              </div>
+            ) : (
+              <div className="h-48 w-48 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2">
+                <Smartphone className="h-10 w-10 text-muted-foreground/30" />
+                <p className="text-xs text-muted-foreground text-center px-2">
+                  Clique para gerar o QR code
+                </p>
+              </div>
+            )}
+          </div>
 
+          {qrError && (
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400 space-y-1">
+              <p>{qrError}</p>
+              <a href="https://doc.evolution-api.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-gold hover:underline">
+                Configurar Evolution API <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+
+          <button
+            onClick={handleGetQR}
+            disabled={loadingQR}
+            className="w-full flex items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm text-white hover:border-gold/40 hover:bg-white/5 transition-colors disabled:opacity-50"
+          >
+            {loadingQR ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {qrBase64 ? 'Atualizar QR Code' : 'Gerar QR Code'}
+          </button>
+
+          <p className="text-[11px] text-muted-foreground text-center">
+            Abra o WhatsApp → Configurações → Dispositivos conectados → Conectar dispositivo
+          </p>
+        </div>
+      )}
+
+      <div className="flex gap-2">
         <button
-          onClick={() => setUseSandbox(false)}
-          className={`w-full flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${!useSandbox ? 'border-gold bg-gold/5' : 'border-border hover:border-gold/30'}`}
+          onClick={onNext}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors ${connected ? 'bg-gold text-[#0B0B0B] hover:bg-gold/90' : 'border border-border text-muted-foreground hover:text-white hover:border-white/20'}`}
         >
-          <div className={`mt-0.5 h-4 w-4 rounded-full border-2 flex items-center justify-center ${!useSandbox ? 'border-gold' : 'border-border'}`}>
-            {!useSandbox && <div className="h-2 w-2 rounded-full bg-gold" />}
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white">Meta WhatsApp Cloud API</p>
-            <p className="text-xs text-muted-foreground">Configure WHATSAPP_PHONE_NUMBER_ID e WHATSAPP_ACCESS_TOKEN no .env</p>
-          </div>
+          {connected ? <><CheckCircle2 className="h-4 w-4" />Continuar</> : <>Pular, conectar depois <ArrowRight className="h-4 w-4" /></>}
         </button>
       </div>
-
-      <button
-        onClick={onNext}
-        className="w-full flex items-center justify-center gap-2 rounded-lg bg-gold py-2.5 text-sm font-semibold text-[#0B0B0B] hover:bg-gold/90 transition-colors"
-      >
-        Continuar <ArrowRight className="h-4 w-4" />
-      </button>
     </div>
   )
 }

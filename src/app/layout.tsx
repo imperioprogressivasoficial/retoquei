@@ -11,16 +11,28 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Retoquei | Retenção Inteligente para Salões',
+  title: { default: 'Retoquei', template: '%s · Retoquei' },
   description:
-    'Transforme o histórico de agendamentos do seu salão em clientes que voltam. Motor de retenção inteligente com automação de WhatsApp.',
-  keywords: ['salão', 'retenção', 'clientes', 'automação', 'whatsapp', 'CRM'],
+    'Motor de retenção inteligente para salões de beleza. Conecte seu sistema de agendamento, identifique clientes em risco e recupere-os automaticamente via WhatsApp.',
+  keywords: ['salão', 'retenção', 'clientes', 'automação', 'whatsapp', 'CRM', 'beleza'],
+  icons: {
+    icon: [
+      {
+        url: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230B0B0B'/><circle cx='47' cy='46' r='26' stroke='%23C9A14A' stroke-width='13' fill='none'/><line x1='63' y1='62' x2='81' y2='82' stroke='%23C9A14A' stroke-width='13' stroke-linecap='round'/></svg>",
+        type: 'image/svg+xml',
+      },
+    ],
+  },
   openGraph: {
-    title: 'Retoquei | Retenção Inteligente para Salões',
-    description:
-      'Motor de retenção inteligente para salões de beleza. Conecte, analise e automatize.',
+    title: 'Retoquei | Retenção Inteligente para Salões de Beleza',
+    description: 'Automatize a retenção de clientes no seu salão com WhatsApp e inteligência artificial.',
     type: 'website',
     locale: 'pt_BR',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Retoquei',
+    description: 'Motor de retenção inteligente para salões de beleza.',
   },
 }
 
@@ -45,9 +57,11 @@ export default function RootLayout({
             position="bottom-right"
             toastOptions={{
               style: {
-                background: '#1E1E1E',
-                border: '1px solid #2A2A2A',
-                color: '#FAFAFA',
+                background: '#1A1A1A',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: '#F5F5F5',
+                borderRadius: '10px',
+                fontSize: '13px',
               },
             }}
           />

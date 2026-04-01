@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Eye, EyeOff, Loader2, Mail, Lock, Sparkles } from 'lucide-react'
+import { RetoqueiWordmark } from '@/components/ui/RetoqueiLogo'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 
@@ -95,11 +96,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="flex items-center gap-2.5 mb-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gold-gradient shadow-lg shadow-[#C9A14A]/20">
-              <span className="text-base font-black text-[#0B0B0B]">R</span>
-            </div>
-            <span className="text-xl font-bold tracking-tight">Retoquei</span>
+          <Link href="/" className="mb-6">
+            <RetoqueiWordmark height={44} />
           </Link>
           <h1 className="text-2xl font-bold">Bem-vindo de volta</h1>
           <p className="mt-1 text-sm text-muted-foreground">

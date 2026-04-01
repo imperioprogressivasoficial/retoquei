@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -145,6 +145,38 @@
 
   .btn-ghost {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-accent;
+  }
+
+  /* Page section card */
+  .page-card {
+    @apply rounded-xl border border-white/[0.07] bg-[#141414] p-5;
+  }
+
+  /* Subtle glow on interactive elements */
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(201, 161, 74, 0.15);
+  }
+
+  /* Focus ring using gold */
+  .focus-gold {
+    @apply focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold;
+  }
+
+  /* Animated gradient border for premium cards */
+  .premium-border {
+    position: relative;
+  }
+  .premium-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #C9A14A40, transparent, #C9A14A20);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 }
 

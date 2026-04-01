@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Zap, Play, Pause, BarChart2, X, Loader2, Plus } from 'lucide-react'
+import { Zap, Play, Pause, BarChart2, X, Loader2, Plus, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const triggerLabels: Record<string, string> = {
@@ -162,6 +162,12 @@ export function FlowsClient({ initialFlows }: Props) {
               <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1"><BarChart2 className="h-3 w-3" />{flow.runsCount} execuções</span>
                 <span>{flow.steps.length} etapas</span>
+                <button
+                  onClick={() => router.push(`/flows/${flow.id}/edit`)}
+                  className="ml-auto flex items-center gap-1 text-xs text-gold hover:underline"
+                >
+                  <Pencil className="h-3 w-3" /> Editar
+                </button>
               </div>
             </div>
           ))}

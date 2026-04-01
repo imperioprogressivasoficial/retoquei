@@ -12,6 +12,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react'
+import { RetoqueiLogoMark, RetoqueiWordmark } from '@/components/ui/RetoqueiLogo'
 
 const features = [
   {
@@ -343,11 +344,8 @@ export default function LandingPage() {
         <div className="container mx-auto">
           <div className="grid gap-8 md:grid-cols-4">
             <div>
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg gold-gradient">
-                  <span className="text-xs font-black text-[#0B0B0B]">R</span>
-                </div>
-                <span className="font-bold text-foreground">Retoquei</span>
+              <div className="mb-4">
+                <RetoqueiWordmark height={32} />
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Motor de retenção inteligente para salões de beleza.

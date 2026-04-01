@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Plus, X, Loader2, Trash2, Send } from 'lucide-react'
+import { FileText, Plus, X, Loader2, Trash2, Send, Sparkles, ChevronDown } from 'lucide-react'
 
 const VARIABLE_BADGE_COLORS: Record<string, string> = {
   '{{customer_name}}': 'text-blue-400 bg-blue-400/10',
@@ -47,6 +47,15 @@ export function TemplatesClient({ initialTemplates }: Props) {
   // Test form state
   const [testPhone, setTestPhone] = useState('')
   const [testResult, setTestResult] = useState<{ rendered?: string; error?: string } | null>(null)
+
+  // AI generation state
+  const [showAI, setShowAI] = useState(false)
+  const [aiTone, setAiTone] = useState<'friendly' | 'professional' | 'casual'>('friendly')
+  const [aiType, setAiType] = useState<'reengagement' | 'welcome' | 'birthday' | 'promotion'>('reengagement')
+  const [aiContext, setAiContext] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([])
+  const [aiError, setAiError] = useState('')
 
   function openCreate() {
     setFormName('')
@@ -116,6 +125,27 @@ export function TemplatesClient({ initialTemplates }: Props) {
     if (!confirm('Excluir este template?')) return
     const res = await fetch(`/api/templates/${id}`, { method: 'DELETE' })
     if (res.ok) setTemplates((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  async function handleGenerateAI() {
+    setAiLoading(true)
+    setAiError('')
+    setAiSuggestions([])
+    try {
+      const variables = VARIABLES_HINT.filter((v) => formBody.includes(v))
+      const res = await fetch('/api/ai/generate-copy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tone: aiTone, type: aiType, context: aiContext, variables }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setAiSuggestions(data.suggestions ?? [])
+    } catch (e) {
+      setAiError((e as Error).message)
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   async function handleTest() {
@@ -232,7 +262,17 @@ export function TemplatesClient({ initialTemplates }: Props) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">Mensagem</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-muted-foreground">Mensagem</label>
+                      <button
+                        type="button"
+                        onClick={() => { setShowAI((v) => !v); setAiSuggestions([]); setAiError('') }}
+                        className="flex items-center gap-1 text-xs text-gold hover:underline"
+                      >
+                        <Sparkles className="h-3 w-3" /> Gerar com IA
+                        <ChevronDown className={`h-3 w-3 transition-transform ${showAI ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
                     <textarea
                       value={formBody}
                       onChange={(e) => setFormBody(e.target.value)}
@@ -252,6 +292,76 @@ export function TemplatesClient({ initialTemplates }: Props) {
                         </button>
                       ))}
                     </div>
+
+                    {/* AI Generation Panel */}
+                    {showAI && (
+                      <div className="mt-3 rounded-xl border border-gold/20 bg-gold/5 p-4 space-y-3">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-gold">
+                          <Sparkles className="h-3.5 w-3.5" /> Gerador de Copy com IA
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Tom</label>
+                            <select
+                              value={aiTone}
+                              onChange={(e) => setAiTone(e.target.value as typeof aiTone)}
+                              className="mt-1 w-full rounded-lg border border-border bg-[#161616] px-2 py-1.5 text-xs text-white focus:border-gold focus:outline-none"
+                            >
+                              <option value="friendly">Amigável</option>
+                              <option value="professional">Profissional</option>
+                              <option value="casual">Casual</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-muted-foreground">Tipo</label>
+                            <select
+                              value={aiType}
+                              onChange={(e) => setAiType(e.target.value as typeof aiType)}
+                              className="mt-1 w-full rounded-lg border border-border bg-[#161616] px-2 py-1.5 text-xs text-white focus:border-gold focus:outline-none"
+                            >
+                              <option value="reengagement">Reengajamento</option>
+                              <option value="welcome">Boas-vindas</option>
+                              <option value="birthday">Aniversário</option>
+                              <option value="promotion">Promoção</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-muted-foreground">Contexto (opcional)</label>
+                          <input
+                            value={aiContext}
+                            onChange={(e) => setAiContext(e.target.value)}
+                            placeholder="Ex: salão especializado em coloração"
+                            className="mt-1 w-full rounded-lg border border-border bg-[#161616] px-2 py-1.5 text-xs text-white placeholder:text-muted-foreground focus:border-gold focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleGenerateAI}
+                          disabled={aiLoading}
+                          className="w-full flex items-center justify-center gap-2 rounded-lg bg-gold/90 py-2 text-xs font-semibold text-[#0B0B0B] hover:bg-gold disabled:opacity-50 transition-colors"
+                        >
+                          {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          {aiLoading ? 'Gerando...' : 'Gerar 3 sugestões'}
+                        </button>
+                        {aiError && <p className="text-[11px] text-red-400">{aiError}</p>}
+                        {aiSuggestions.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Clique para usar:</p>
+                            {aiSuggestions.map((s, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => { setFormBody(s); setShowAI(false); setAiSuggestions([]) }}
+                                className="w-full text-left rounded-lg border border-border bg-[#161616] p-2.5 text-xs text-white hover:border-gold/40 hover:bg-white/5 transition-colors font-mono leading-relaxed"
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {error && <p className="text-xs text-red-400">{error}</p>}
                   <button

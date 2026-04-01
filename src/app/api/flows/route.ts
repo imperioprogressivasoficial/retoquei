@@ -11,6 +11,23 @@ const schema = z.object({
   activate: z.boolean().optional(),
 })
 
+export async function GET(_req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const tenantId = await getTenantId(user.id)
+  if (!tenantId) return NextResponse.json([], { status: 200 })
+
+  const flows = await prisma.automationFlow.findMany({
+    where: { tenantId },
+    orderBy: { createdAt: 'asc' },
+    include: { steps: { orderBy: { stepOrder: 'asc' } } },
+  })
+
+  return NextResponse.json(flows)
+}
+
 async function getTenantId(supabaseUserId: string) {
   const dbUser = await prisma.user.findUnique({
     where: { supabaseId: supabaseUserId },

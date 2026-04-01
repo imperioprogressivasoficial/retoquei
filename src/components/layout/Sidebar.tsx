@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, Tag, Zap, Megaphone, FileText,
-  Plug, Settings, Shield, ChevronRight, LogOut,
+  Plug, Settings, Shield, LogOut, Smartphone, BarChart2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { RetoqueiLogo } from '@/components/ui/RetoqueiLogo'
 
 // ---------------------------------------------------------------------------
 // Sidebar — premium dark navigation for the Retoquei app shell
@@ -22,10 +23,12 @@ const navItems = [
   { href: '/campaigns',    label: 'Campanhas',    icon: Megaphone },
   { href: '/templates',    label: 'Templates',    icon: FileText },
   { href: '/integrations', label: 'Integrações',  icon: Plug },
+  { href: '/analytics',    label: 'Análises',     icon: BarChart2 },
 ]
 
 const bottomItems = [
-  { href: '/settings', label: 'Configurações', icon: Settings },
+  { href: '/settings/whatsapp', label: 'WhatsApp',       icon: Smartphone },
+  { href: '/settings',          label: 'Configurações',  icon: Settings },
 ]
 
 interface SidebarProps {
@@ -44,86 +47,82 @@ export function Sidebar({ tenantName = 'Salão Aurora', userEmail }: SidebarProp
   }
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r border-border bg-[#0B0B0B]">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-border">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold text-[#0B0B0B] font-black text-lg select-none">
-          Q
-        </div>
-        <span className="font-semibold text-white tracking-tight text-[15px]">Retoquei</span>
+    <aside className="flex h-screen w-[220px] flex-col border-r border-white/[0.06] bg-[#0A0A0A]">
+      {/* Logo + wordmark */}
+      <div className="flex items-center gap-2.5 px-4 py-[18px] border-b border-white/[0.06]">
+        <RetoqueiLogo size={30} withText textColor="#FFFFFF" />
       </div>
 
-      {/* Tenant name */}
-      <div className="px-5 py-3 border-b border-border">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Espaço</p>
-        <p className="text-sm font-medium text-white truncate mt-0.5">{tenantName}</p>
+      {/* Tenant badge */}
+      <div className="px-4 py-2.5 border-b border-white/[0.06]">
+        <p className="text-[10px] text-white/30 uppercase tracking-[0.12em] font-semibold mb-0.5">Espaço de trabalho</p>
+        <p className="text-[13px] font-medium text-white/80 truncate">{tenantName}</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2">
-        <ul className="space-y-0.5">
-          {navItems.map((item) => {
+      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'group flex items-center gap-2.5 rounded-lg px-3 py-[7px] text-[13px] transition-all duration-150',
+                active
+                  ? 'bg-gold/[0.12] text-gold font-semibold'
+                  : 'text-white/45 hover:text-white/90 hover:bg-white/[0.05]',
+              )}
+            >
+              <Icon className={cn('h-[15px] w-[15px] shrink-0 transition-colors', active ? 'text-gold' : 'group-hover:text-white/80')} />
+              {item.label}
+              {active && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-gold" />}
+            </Link>
+          )
+        })}
+
+        {/* System section */}
+        <div className="mt-4 pt-3 border-t border-white/[0.06]">
+          <p className="px-3 text-[10px] text-white/25 uppercase tracking-[0.12em] font-semibold mb-2">Sistema</p>
+          {bottomItems.map((item) => {
             const Icon = item.icon
-            const active = pathname === item.href || pathname.startsWith(item.href + '/')
+            const active = pathname === item.href || pathname.startsWith(item.href)
             return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'group flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all',
-                    active
-                      ? 'bg-gold/10 text-gold font-medium border-l-2 border-gold ml-0 pl-[10px]'
-                      : 'text-muted-foreground hover:text-white hover:bg-white/5',
-                  )}
-                >
-                  <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-gold' : '')} />
-                  {item.label}
-                </Link>
-              </li>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-2.5 rounded-lg px-3 py-[7px] text-[13px] transition-all duration-150',
+                  active
+                    ? 'bg-gold/[0.12] text-gold font-semibold'
+                    : 'text-white/45 hover:text-white/90 hover:bg-white/[0.05]',
+                )}
+              >
+                <Icon className="h-[15px] w-[15px] shrink-0" />
+                {item.label}
+              </Link>
             )
           })}
-        </ul>
-
-        {/* Admin link (only shown to admins — handled via server component or context) */}
-        <div className="mt-6 pt-4 border-t border-border">
-          <p className="px-3 text-xs text-muted-foreground uppercase tracking-widest mb-2">Sistema</p>
-          <ul className="space-y-0.5">
-            {bottomItems.map((item) => {
-              const Icon = item.icon
-              const active = pathname === item.href
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all',
-                      active
-                        ? 'bg-gold/10 text-gold font-medium border-l-2 border-gold pl-[10px]'
-                        : 'text-muted-foreground hover:text-white hover:bg-white/5',
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {item.label}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
         </div>
       </nav>
 
       {/* User footer */}
-      <div className="border-t border-border px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="border-t border-white/[0.06] px-3 py-3">
+        <div className="flex items-center gap-2.5">
+          {/* Avatar */}
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/20 text-gold text-[11px] font-bold">
+            {(userEmail?.[0] ?? 'U').toUpperCase()}
+          </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+            <p className="text-[11px] text-white/40 truncate">{userEmail}</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="ml-2 rounded-md p-1.5 text-muted-foreground hover:text-white hover:bg-white/10 transition-colors"
+            className="rounded-md p-1.5 text-white/30 hover:text-white/80 hover:bg-white/[0.08] transition-colors"
             title="Sair"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

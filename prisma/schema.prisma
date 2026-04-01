@@ -143,6 +143,7 @@ model Tenant {
   status                 TenantStatus     @default(TRIAL)
   plan                   SubscriptionPlan @default(FREE)
   ownerId                String
+  stripeCustomerId       String?
   settings               Json             @default("{}")
   atRiskThresholdDays    Int              @default(0)
   lostThresholdDays      Int              @default(0)
