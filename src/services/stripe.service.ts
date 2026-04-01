@@ -1,15 +1,24 @@
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia',
-})
+// Lazy singleton — avoids build-time failure when STRIPE_SECRET_KEY is not set
+let _stripe: Stripe | null = null
+
+function getStripe(): Stripe {
+  if (!_stripe) {
+    const key = process.env.STRIPE_SECRET_KEY
+    if (!key) throw new Error('STRIPE_SECRET_KEY is not configured')
+    _stripe = new Stripe(key, { apiVersion: '2025-01-27.acacia' })
+  }
+  return _stripe
+}
 
 export async function createCustomer(
   tenantId: string,
   email: string,
   name: string,
 ): Promise<Stripe.Customer> {
+  const stripe = getStripe()
   const customer = await stripe.customers.create({ email, name, metadata: { tenantId } })
 
   await prisma.tenant.update({
@@ -26,6 +35,7 @@ export async function createCheckoutSession(
   successUrl: string,
   cancelUrl: string,
 ): Promise<Stripe.Checkout.Session> {
+  const stripe = getStripe()
   const tenant = await prisma.tenant.findUniqueOrThrow({ where: { id: tenantId } })
 
   let customerId = tenant.stripeCustomerId
@@ -54,6 +64,7 @@ export async function createBillingPortalSession(
   tenantId: string,
   returnUrl: string,
 ): Promise<Stripe.BillingPortal.Session> {
+  const stripe = getStripe()
   const tenant = await prisma.tenant.findUniqueOrThrow({ where: { id: tenantId } })
 
   if (!tenant.stripeCustomerId) {
@@ -69,6 +80,7 @@ export async function createBillingPortalSession(
 export async function getSubscription(
   stripeCustomerId: string,
 ): Promise<Stripe.Subscription | null> {
+  const stripe = getStripe()
   const subscriptions = await stripe.subscriptions.list({
     customer: stripeCustomerId,
     status: 'all',
@@ -79,12 +91,14 @@ export async function getSubscription(
 }
 
 export async function cancelSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
-  return stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true })
+  return getStripe().subscriptions.update(subscriptionId, { cancel_at_period_end: true })
 }
 
 export function constructWebhookEvent(
   rawBody: string,
   signature: string,
 ): Stripe.Event {
-  return stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+  const secret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!secret) throw new Error('STRIPE_WEBHOOK_SECRET is not configured')
+  return getStripe().webhooks.constructEvent(rawBody, signature, secret)
 }
