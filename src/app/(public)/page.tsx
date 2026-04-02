@@ -146,23 +146,6 @@ function MobileMenu() {
   )
 }
 
-// ─── Live badge ───────────────────────────────────────────────────────────────
-function LiveBadge() {
-  const [n, setN] = useState(847)
-  useEffect(() => {
-    const t = setInterval(() => { if (Math.random() > .65) setN(c => c + Math.floor(Math.random() * 3 + 1)) }, 3500)
-    return () => clearInterval(t)
-  }, [])
-  return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-400">
-      <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400" style={{ animation: 'ping-gold 1.5s ease-out infinite', background: '#10b981' }} />
-        <span className="relative h-2 w-2 rounded-full bg-emerald-500 inline-flex" />
-      </span>
-      {n.toLocaleString('pt-BR')} clientes ativos agora
-    </div>
-  )
-}
 
 // ─── Dashboard mockup ─────────────────────────────────────────────────────────
 function DashboardMockup() {
@@ -485,11 +468,6 @@ export default function LandingPage() {
             style={{ background: 'rgba(201,161,74,.1)', border: '1px solid rgba(201,161,74,.2)', color: '#C9A14A' }}>
             <Star className="h-3 w-3" />
             Uma empresa do Grupo Império
-          </div>
-
-          {/* Live badge */}
-          <div className="flex justify-center mb-6">
-            <LiveBadge />
           </div>
 
           {/* Headline */}
