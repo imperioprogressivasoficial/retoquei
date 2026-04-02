@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
   let jobId: string | null = null
   if (!scheduledAt) {
     try {
-      const queue = QUEUES['message-send']
+      const queue = QUEUES.messageSendQueue
       const job = await queue.add(`send-${message.id}`, {
         messageId: message.id,
         tenantId,
