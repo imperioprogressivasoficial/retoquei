@@ -66,7 +66,7 @@ const connection: ConnectionOptions = redis as unknown as ConnectionOptions
  * Triggered when a connector sync is requested.
  * Payload: { tenantId: string; connectorId: string; syncType: 'customers' | 'appointments' | 'services' | 'full' }
  */
-export const connectorSyncQueue = new Queue('connector:sync', {
+export const connectorSyncQueue = new Queue('connector-sync', {
   connection,
   defaultJobOptions: {
     attempts: 3,
@@ -80,7 +80,7 @@ export const connectorSyncQueue = new Queue('connector:sync', {
  * Triggered after a sync to recompute metrics for a single customer.
  * Payload: { tenantId: string; customerId: string }
  */
-export const customerRecomputeQueue = new Queue('customer:recompute', {
+export const customerRecomputeQueue = new Queue('customer-recompute', {
   connection,
   defaultJobOptions: {
     attempts: 3,
@@ -94,7 +94,7 @@ export const customerRecomputeQueue = new Queue('customer:recompute', {
  * Triggered to refresh segment membership for a tenant.
  * Payload: { tenantId: string; segmentId?: string } (no segmentId = refresh all)
  */
-export const segmentRefreshQueue = new Queue('segment:refresh', {
+export const segmentRefreshQueue = new Queue('segment-refresh', {
   connection,
   defaultJobOptions: {
     attempts: 3,
@@ -108,7 +108,7 @@ export const segmentRefreshQueue = new Queue('segment:refresh', {
  * Triggered to send a single outbound message.
  * Payload: { messageId: string; tenantId: string }
  */
-export const messageSendQueue = new Queue('message:send', {
+export const messageSendQueue = new Queue('message-send', {
   connection,
   defaultJobOptions: {
     attempts: 5,
@@ -122,7 +122,7 @@ export const messageSendQueue = new Queue('message:send', {
  * Triggered when a webhook payload arrives and needs processing.
  * Payload: { connectorId: string; tenantId: string; rawPayload: unknown; signature?: string }
  */
-export const webhookProcessQueue = new Queue('webhook:process', {
+export const webhookProcessQueue = new Queue('webhook-process', {
   connection,
   defaultJobOptions: {
     attempts: 3,
@@ -136,7 +136,7 @@ export const webhookProcessQueue = new Queue('webhook:process', {
  * Triggered to schedule messages for a campaign at the defined send time.
  * Payload: { campaignId: string; tenantId: string }
  */
-export const campaignScheduleQueue = new Queue('campaign:schedule', {
+export const campaignScheduleQueue = new Queue('campaign-schedule', {
   connection,
   defaultJobOptions: {
     attempts: 2,
@@ -150,7 +150,7 @@ export const campaignScheduleQueue = new Queue('campaign:schedule', {
  * Cron-like queue that retries messages stuck in FAILED state.
  * Payload: { tenantId?: string } (no tenantId = retry all tenants)
  */
-export const retryFailedMessagesQueue = new Queue('message:retry-failed', {
+export const retryFailedMessagesQueue = new Queue('retry-failed-messages', {
   connection,
   defaultJobOptions: {
     attempts: 1,

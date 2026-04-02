@@ -43,7 +43,7 @@ export default function LoginPage() {
   async function onPasswordSubmit(data: LoginForm) {
     setLoading(true)
     try {
-      }
+      const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       })

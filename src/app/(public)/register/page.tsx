@@ -51,7 +51,6 @@ export default function RegisterPage() {
   async function onSubmit(data: RegisterForm) {
     setLoading(true)
     try {
-      }
       const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
