@@ -1,782 +1,804 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import Image from 'next/image'
+import { useState, useEffect, useRef } from 'react'
 import {
-  ArrowRight,
-  BarChart3,
-  Bot,
-  CheckCircle,
-  ChevronDown,
-  Link2,
-  MessageSquare,
-  Shield,
-  Sparkles,
-  TrendingUp,
-  Users,
-  Zap,
-  AlertTriangle,
-  Clock,
-  Star,
-  Phone,
-  CalendarCheck,
-  HeartHandshake,
-  XCircle,
+  ArrowRight, BarChart3, Bot, CheckCircle, ChevronDown,
+  MessageSquare, Sparkles, TrendingUp, Users, Zap,
+  AlertTriangle, Star, Phone, CalendarCheck, Menu, X,
+  Wifi, Clock, RefreshCw, Target, Award, ChevronRight,
 } from 'lucide-react'
-import { RetoqueiLogoMark, RetoqueiWordmark } from '@/components/ui/RetoqueiLogo'
+import { AnimatedSection, AnimatedCounter } from '@/components/ui/AnimatedSection'
 
-// ─── Data ──────────────────────────────────────────────────────────────────
+// ─── Global styles ────────────────────────────────────────────────────────────
+const G = () => (
+  <style>{`
+    @keyframes float-y {
+      0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)}
+    }
+    @keyframes spin-slow {
+      to{transform:rotate(360deg)}
+    }
+    @keyframes pulse-dot {
+      0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6}
+    }
+    @keyframes shimmer {
+      0%{transform:translateX(-100%)} 100%{transform:translateX(200%)}
+    }
+    @keyframes slide-in {
+      from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)}
+    }
+    @keyframes blink-cursor {
+      0%,100%{opacity:1} 50%{opacity:0}
+    }
+    @keyframes gradient-x {
+      0%,100%{background-position:0% 50%} 50%{background-position:100% 50%}
+    }
+    @keyframes ping-gold {
+      0%{transform:scale(1);opacity:.4} 100%{transform:scale(2.2);opacity:0}
+    }
+    @keyframes bar-grow {
+      from{height:0} to{height:var(--h)}
+    }
+    @keyframes count-up {
+      from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)}
+    }
+    .gold-shimmer-btn::after {
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+      transform:translateX(-100%);
+      transition:transform .5s ease;
+    }
+    .gold-shimmer-btn:hover::after{transform:translateX(200%)}
+    .card-hover{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+    .card-hover:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+    .nav-link{position:relative;color:rgba(255,255,255,.55);transition:color .2s}
+    .nav-link::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:1px;background:#C9A14A;transition:width .25s}
+    .nav-link:hover{color:rgba(255,255,255,.9)}
+    .nav-link:hover::after{width:100%}
+    @media(max-width:767px){
+      .hide-mobile{display:none!important}
+      .stack-mobile{flex-direction:column!important;align-items:stretch!important}
+      .stack-mobile > *{width:100%!important}
+    }
+  `}</style>
+)
 
-const problems = [
-  { icon: AlertTriangle, text: 'Clientes somem e você só percebe meses depois' },
-  { icon: Clock, text: 'Fica sem tempo para ligar ou mandar mensagem manual' },
-  { icon: XCircle, text: 'Não sabe quais clientes estão em risco de churn' },
-  { icon: BarChart3, text: 'Não tem visibilidade de métricas como LTV e recorrência' },
-]
-
-const features = [
-  {
-    icon: Link2,
-    title: 'Importe em minutos',
-    description: 'Suba sua planilha CSV ou conecte via webhook. O histórico de agendamentos vira inteligência de negócio imediatamente.',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/20',
-    metrics: 'Setup em < 10min',
-  },
-  {
-    icon: BarChart3,
-    title: 'Segmentação automática',
-    description: 'Cada cliente é classificado: Novo, Ativo, VIP, Em Risco ou Perdido. O motor calcula LTV, frequência e probabilidade de retorno.',
-    color: 'text-[#C9A14A]',
-    bg: 'bg-[#C9A14A]/10',
-    border: 'border-[#C9A14A]/20',
-    metrics: '7 segmentos inteligentes',
-  },
-  {
-    icon: Bot,
-    title: 'WhatsApp automático',
-    description: 'Mensagens personalizadas no momento certo: reativação de inativos, parabéns, pós-visita, upsell de serviço. Zero esforço.',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
-    metrics: '7 flows prontos para usar',
-  },
-]
-
-const steps = [
-  {
-    num: '01',
-    icon: CalendarCheck,
-    title: 'Conecte seu histórico',
-    description: 'Suba a planilha do seu sistema atual. Suportamos CSV, Trinks e webhooks. Leva menos de 10 minutos.',
-  },
-  {
-    num: '02',
-    icon: BarChart3,
-    title: 'Retoquei analisa tudo',
-    description: 'Nosso motor processa o histórico inteiro e classifica cada cliente com LTV, risco de churn e próxima visita prevista.',
-  },
-  {
-    num: '03',
-    icon: Bot,
-    title: 'Automações em ação',
-    description: 'Clientes em risco recebem mensagem de retorno. VIPs recebem exclusividade. Inativos voltam. Tudo no piloto automático.',
-  },
-]
-
-const testimonials = [
-  {
-    quote: 'Em 30 dias recuperei 23 clientes que não vinham há mais de 60 dias. O ROI foi imediato — a ferramenta se pagou na primeira semana.',
-    name: 'Carla Mendes',
-    role: 'Proprietária',
-    salon: 'Studio CM, São Paulo',
-    avatar: 'CM',
-    stars: 5,
-    metric: '+23 clientes recuperados',
-  },
-  {
-    quote: 'Antes eu não sabia quais clientes estavam sumindo. Agora recebo alertas com 2 semanas de antecedência e consigo agir antes de perder o cliente.',
-    name: 'Rodrigo Alves',
-    role: 'Gerente',
-    salon: 'Barber Palace, Curitiba',
-    avatar: 'RA',
-    stars: 5,
-    metric: '40% menos churn',
-  },
-  {
-    quote: 'A automação de WhatsApp sozinha já pagou o plano 3x em 2 meses. Minha recorrência subiu de 45% para 71%. Recomendo pra qualquer salão.',
-    name: 'Fernanda Costa',
-    role: 'Sócia-fundadora',
-    salon: 'Salão Fernanda Costa, BH',
-    avatar: 'FC',
-    stars: 5,
-    metric: 'Recorrência +58%',
-  },
-]
-
-const plans = [
-  {
-    name: 'Starter',
-    price: 'R$197',
-    per: '/mês',
-    description: 'Para salões em crescimento',
-    features: [
-      'Até 500 clientes ativos',
-      '3 fluxos de automação',
-      'Importação via CSV',
-      'Dashboard + relatórios',
-      'Suporte por email',
-    ],
-    missing: ['Webhook / API', 'Multi-unidade'],
-    cta: 'Começar grátis',
-    href: '/register',
-    highlighted: false,
-  },
-  {
-    name: 'Growth',
-    price: 'R$397',
-    per: '/mês',
-    description: 'O favorito dos salões estabelecidos',
-    features: [
-      'Até 2.000 clientes ativos',
-      'Fluxos ilimitados',
-      'Webhook + API',
-      'Analytics avançado',
-      'WhatsApp QR Code',
-      'Suporte prioritário',
-    ],
-    missing: ['Multi-unidade'],
-    cta: 'Começar grátis',
-    href: '/register',
-    highlighted: true,
-  },
-  {
-    name: 'Scale',
-    price: 'R$797',
-    per: '/mês',
-    description: 'Para redes e franquias',
-    features: [
-      'Clientes ilimitados',
-      'Multi-unidade',
-      'API avançada + webhooks',
-      'Onboarding dedicado',
-      'SLA 99.9% garantido',
-      'Gerente de conta',
-    ],
-    missing: [],
-    cta: 'Falar com vendas',
-    href: 'https://wa.me/5511999999999',
-    highlighted: false,
-  },
-]
-
-const faqs = [
-  {
-    q: 'Preciso mudar meu sistema de agendamento?',
-    a: 'Não. O Retoquei se conecta ao que você já usa. Basta exportar uma planilha CSV do seu sistema atual e fazer o upload. Suportamos Trinks, Booksy e qualquer outro via webhook.',
-  },
-  {
-    q: 'Como o WhatsApp funciona?',
-    a: 'Você conecta seu próprio número de WhatsApp via QR Code (igual ao WhatsApp Web). As mensagens saem do seu número, com o nome do seu salão. Não precisa de conta Business ou API paga da Meta.',
-  },
-  {
-    q: 'Em quanto tempo vejo resultados?',
-    a: 'A maioria dos clientes vê os primeiros clientes retornando em 7 a 14 dias após configurar os fluxos. O impacto na retenção fica evidente no primeiro mês completo.',
-  },
-  {
-    q: 'O Retoquei envia spam para meus clientes?',
-    a: 'Nunca. Os fluxos são baseados no comportamento real de cada cliente. Uma mensagem é enviada apenas quando faz sentido — por exemplo, quando um cliente ultrapassa o tempo médio sem visita.',
-  },
-  {
-    q: 'Posso cancelar a qualquer momento?',
-    a: 'Sim. Sem multa, sem carência. Se cancelar, seus dados ficam disponíveis para exportação por 30 dias.',
-  },
-  {
-    q: 'Os dados dos meus clientes ficam seguros?',
-    a: 'Sim. Usamos Supabase com criptografia em repouso e em trânsito, RLS (Row Level Security) por tenant, e seguimos as diretrizes da LGPD.',
-  },
-]
-
-// ─── Sub-components ────────────────────────────────────────────────────────
-
-function DashboardMockup() {
+// ─── Cursor glow ──────────────────────────────────────────────────────────────
+function CursorGlow() {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const move = (e: MouseEvent) => {
+      if (ref.current) {
+        ref.current.style.left = e.clientX + 'px'
+        ref.current.style.top = e.clientY + 'px'
+      }
+    }
+    window.addEventListener('mousemove', move)
+    return () => window.removeEventListener('mousemove', move)
+  }, [])
   return (
-    <div className="relative w-full max-w-5xl mx-auto mt-20">
-      {/* Glow behind */}
-      <div className="absolute -inset-4 bg-gradient-to-b from-[#C9A14A]/10 via-transparent to-transparent rounded-3xl blur-2xl pointer-events-none" />
+    <div ref={ref} className="pointer-events-none fixed z-0 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full hide-mobile"
+      style={{ background: 'radial-gradient(circle,rgba(201,161,74,.07) 0%,transparent 65%)', transition: 'left .12s ease,top .12s ease' }} />
+  )
+}
 
-      <div className="relative rounded-2xl border border-white/10 bg-[#111111] shadow-2xl overflow-hidden">
+// ─── Floating particles ───────────────────────────────────────────────────────
+function Particles() {
+  const items = useRef(
+    Array.from({ length: 15 }, (_, i) => ({
+      w: Math.random() * 2.5 + 1,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      op: Math.random() * 0.25 + 0.05,
+      dur: Math.random() * 12 + 8,
+      delay: Math.random() * 6,
+    }))
+  )
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {items.current.map((p, i) => (
+        <div key={i} className="absolute rounded-full bg-[#C9A14A]"
+          style={{ width: p.w, height: p.w, left: p.left + '%', top: p.top + '%', opacity: p.op, animation: `float-y ${p.dur}s ${p.delay}s ease-in-out infinite` }} />
+      ))}
+    </div>
+  )
+}
+
+// ─── Mobile menu ─────────────────────────────────────────────────────────────
+function MobileMenu() {
+  const [open, setOpen] = useState(false)
+  const links = [
+    { href: '#como-funciona', label: 'Como funciona' },
+    { href: '#recursos', label: 'Recursos' },
+    { href: '#precos', label: 'Preços' },
+    { href: '#faq', label: 'FAQ' },
+  ]
+  return (
+    <>
+      <button onClick={() => setOpen(v => !v)} className="md:hidden p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all">
+        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 right-0 border-t border-white/5 py-4 px-5 flex flex-col gap-1 z-50"
+          style={{ background: '#080808', animation: 'slide-in .2s ease' }}>
+          {links.map(l => (
+            <a key={l.href} href={l.href} onClick={() => setOpen(false)}
+              className="py-3 px-4 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all text-sm font-medium">
+              {l.label}
+            </a>
+          ))}
+          <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-2">
+            <Link href="/login" onClick={() => setOpen(false)}
+              className="py-3 px-4 rounded-xl text-center text-white/60 hover:text-white hover:bg-white/5 transition-all text-sm font-medium">
+              Entrar
+            </Link>
+            <Link href="/register" onClick={() => setOpen(false)}
+              className="py-3 px-4 rounded-xl text-center text-white font-semibold text-sm"
+              style={{ background: 'linear-gradient(135deg,#C9A14A,#E8C06A)' }}>
+              Começar grátis
+            </Link>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ─── Live badge ───────────────────────────────────────────────────────────────
+function LiveBadge() {
+  const [n, setN] = useState(847)
+  useEffect(() => {
+    const t = setInterval(() => { if (Math.random() > .65) setN(c => c + Math.floor(Math.random() * 3 + 1)) }, 3500)
+    return () => clearInterval(t)
+  }, [])
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-400">
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400" style={{ animation: 'ping-gold 1.5s ease-out infinite', background: '#10b981' }} />
+        <span className="relative h-2 w-2 rounded-full bg-emerald-500 inline-flex" />
+      </span>
+      {n.toLocaleString('pt-BR')} clientes ativos agora
+    </div>
+  )
+}
+
+// ─── Dashboard mockup ─────────────────────────────────────────────────────────
+function DashboardMockup() {
+  const [tick, setTick] = useState(0)
+  const [msgTick, setMsgTick] = useState(0)
+
+  useEffect(() => {
+    const t1 = setInterval(() => setTick(p => p + 1), 1200)
+    const t2 = setInterval(() => setMsgTick(p => p + 1), 2800)
+    return () => { clearInterval(t1); clearInterval(t2) }
+  }, [])
+
+  const bars = [38, 45, 55, 50, 62, 68, 60, 74, 72, 81, 78, 90]
+  const activeBar = tick % 12
+
+  const customers = [
+    { name: 'Ana Beatriz', service: 'Coloração', days: 42, stage: 'Em Risco', stageColor: 'text-amber-400', dot: 'bg-amber-400' },
+    { name: 'Carla Mendes', service: 'Escova', days: 8, stage: 'Ativo', stageColor: 'text-emerald-400', dot: 'bg-emerald-400' },
+    { name: 'Fernanda S.', service: 'Manicure', days: 71, stage: 'Perdido', stageColor: 'text-rose-400', dot: 'bg-rose-400' },
+    { name: 'Juliana R.', service: 'Hidratação', days: 15, stage: 'VIP', stageColor: 'text-[#C9A14A]', dot: 'bg-[#C9A14A]' },
+  ]
+
+  const msgs = [
+    '✅ "Ana, sentimos sua falta! Seu próximo retoque…"',
+    '📨 "Carla, seu aniversário está chegando…"',
+    '💫 "Fernanda, exclusivo para você: 20% off…"',
+    '🌟 "Juliana, novidade VIP disponível!"',
+  ]
+
+  return (
+    <AnimatedSection delay={0.25} direction="up" className="relative w-full max-w-5xl mx-auto mt-14 md:mt-20">
+      {/* glow */}
+      <div className="absolute -inset-6 rounded-3xl" style={{ background: 'radial-gradient(ellipse at 50% 100%,rgba(201,161,74,.12) 0%,transparent 65%)' }} />
+
+      <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ background: '#0D0D0D', border: '1px solid rgba(255,255,255,0.07)' }}>
         {/* Window chrome */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06] bg-[#0E0E0E]">
-          <div className="h-3 w-3 rounded-full bg-red-500/70" />
-          <div className="h-3 w-3 rounded-full bg-yellow-500/70" />
-          <div className="h-3 w-3 rounded-full bg-green-500/70" />
-          <div className="mx-auto flex items-center gap-2 rounded-md bg-white/[0.04] px-4 py-1 text-xs text-white/30">
-            <span>🔒</span> retoquei.vercel.app/dashboard
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.04]" style={{ background: '#080808' }}>
+          <div className="h-3 w-3 rounded-full bg-red-500/50" />
+          <div className="h-3 w-3 rounded-full bg-yellow-500/50" />
+          <div className="h-3 w-3 rounded-full bg-green-500/50" />
+          <div className="flex-1 flex justify-center">
+            <div className="rounded-md px-8 py-1 text-[10px] text-white/20 border border-white/[0.04] flex items-center gap-1.5" style={{ background: '#141414' }}>
+              <span className="text-emerald-500/60">🔒</span> retoquei.com/dashboard
+            </div>
           </div>
         </div>
 
-        <div className="flex">
-          {/* Sidebar mini */}
-          <div className="hidden sm:flex w-14 flex-col items-center gap-4 border-r border-white/[0.05] bg-[#0A0A0A] py-4">
-            <div className="h-7 w-7 rounded-lg bg-[#C9A14A]/20 flex items-center justify-center">
-              <RetoqueiLogoMark size={16} />
+        <div className="flex" style={{ minHeight: 400 }}>
+          {/* Sidebar */}
+          <div className="hidden sm:flex w-[52px] flex-col items-center gap-3 py-4 border-r border-white/[0.04]" style={{ background: '#080808' }}>
+            <div className="h-8 w-8 rounded-xl flex items-center justify-center mb-1" style={{ background: 'rgba(201,161,74,.15)' }}>
+              <Image src="/logo-mark.svg" alt="" width={18} height={18} />
             </div>
-            {[BarChart3, Users, Bot, MessageSquare].map((Icon, i) => (
-              <div key={i} className={`h-8 w-8 rounded-lg flex items-center justify-center ${i === 0 ? 'bg-[#C9A14A]/15' : 'hover:bg-white/[0.04]'}`}>
-                <Icon className={`h-4 w-4 ${i === 0 ? 'text-[#C9A14A]' : 'text-white/20'}`} />
+            {[
+              { Icon: BarChart3, active: true },
+              { Icon: Users, active: false },
+              { Icon: Bot, active: false },
+              { Icon: MessageSquare, active: false },
+              { Icon: Target, active: false },
+            ].map(({ Icon, active }, i) => (
+              <div key={i} className="h-8 w-8 rounded-xl flex items-center justify-center transition-all"
+                style={{ background: active ? 'rgba(201,161,74,.14)' : 'transparent', border: active ? '1px solid rgba(201,161,74,.22)' : '1px solid transparent' }}>
+                <Icon className="h-3.5 w-3.5" style={{ color: active ? '#C9A14A' : 'rgba(255,255,255,.18)' }} />
               </div>
             ))}
           </div>
 
-          {/* Dashboard content */}
-          <div className="flex-1 p-5 space-y-4">
+          {/* Main content */}
+          <div className="flex-1 p-4 md:p-5 space-y-3 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
-                <p className="text-xs text-white/40">Salão Aurora</p>
-                <h3 className="text-sm font-semibold text-white">Dashboard</h3>
+                <p className="text-[9px] text-white/25 uppercase tracking-wider">Salão Aurora · Abril 2026</p>
+                <p className="text-xs font-semibold text-white mt-0.5">Visão Geral</p>
               </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/20 px-3 py-1 text-xs text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                3 clientes recuperados hoje
+              <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 px-2.5 py-1 text-[9px] text-emerald-400" style={{ background: 'rgba(16,185,129,.08)' }}>
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-flex" style={{ animation: 'pulse-dot 2s infinite' }} />
+                4 clientes recuperados hoje
               </div>
             </div>
 
-            {/* KPI cards */}
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {/* KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                { label: 'Total Clientes', value: '1.284', change: '+47', color: 'text-white' },
-                { label: 'Ativos', value: '847', change: '+12%', color: 'text-emerald-400' },
-                { label: 'Em Risco', value: '213', change: '⚠ 16%', color: 'text-amber-400' },
-                { label: 'LTV Médio', value: 'R$847', change: '+8%', color: 'text-[#C9A14A]' },
-              ].map((kpi) => (
-                <div key={kpi.label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
-                  <p className="text-[10px] text-white/40 mb-1">{kpi.label}</p>
-                  <p className={`text-lg font-bold ${kpi.color}`}>{kpi.value}</p>
-                  <p className="text-[10px] text-white/30 mt-0.5">{kpi.change}</p>
+                { label: 'Total', value: '1.847', delta: '+83', color: '#fff' },
+                { label: 'Ativos', value: '1.204', delta: '+14%', color: '#10b981' },
+                { label: 'Em Risco', value: '318', delta: '⚠ 17%', color: '#f59e0b' },
+                { label: 'LTV Médio', value: 'R$912', delta: '+9%', color: '#C9A14A' },
+              ].map((k) => (
+                <div key={k.label} className="rounded-lg p-2.5 transition-all" style={{ background: 'rgba(255,255,255,.025)', border: '1px solid rgba(255,255,255,.05)' }}>
+                  <p className="text-[8px] text-white/30 mb-1 uppercase tracking-wider">{k.label}</p>
+                  <p className="text-sm font-bold" style={{ color: k.color }}>{k.value}</p>
+                  <p className="text-[8px] text-white/25 mt-0.5">{k.delta}</p>
                 </div>
               ))}
             </div>
 
-            {/* Chart area */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                <p className="text-[10px] text-white/40 mb-2">Evolução de Clientes — 12 meses</p>
-                {/* Fake sparkline */}
-                <svg viewBox="0 0 200 50" className="w-full h-14" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#C9A14A" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#C9A14A" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,40 L16,36 L33,32 L50,30 L66,28 L83,24 L100,22 L116,18 L133,15 L150,14 L166,10 L183,8 L200,5" stroke="#C9A14A" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                  <path d="M0,40 L16,36 L33,32 L50,30 L66,28 L83,24 L100,22 L116,18 L133,15 L150,14 L166,10 L183,8 L200,5 L200,50 L0,50Z" fill="url(#grad)" />
-                </svg>
+            {/* Charts + Table row */}
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+              {/* Bar chart */}
+              <div className="sm:col-span-2 rounded-lg p-3" style={{ background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.04)' }}>
+                <p className="text-[8px] text-white/30 mb-2 uppercase tracking-wider">Evolução mensal</p>
+                <div className="flex items-end gap-[3px] h-14">
+                  {bars.map((h, i) => (
+                    <div key={i} className="flex-1 rounded-sm transition-all duration-700"
+                      style={{
+                        height: `${h}%`,
+                        background: i === activeBar
+                          ? 'linear-gradient(to top,#C9A14A,#F0C87A)'
+                          : i < activeBar
+                            ? 'rgba(201,161,74,.38)'
+                            : 'rgba(255,255,255,.06)',
+                      }} />
+                  ))}
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[7px] text-white/20">Jan</span>
+                  <span className="text-[7px] text-white/20">Abr</span>
+                </div>
               </div>
 
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                <p className="text-[10px] text-white/40 mb-2">Segmentos</p>
+              {/* Customer mini-list */}
+              <div className="sm:col-span-3 rounded-lg p-3" style={{ background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.04)' }}>
+                <p className="text-[8px] text-white/30 mb-2 uppercase tracking-wider">Clientes · risco hoje</p>
                 <div className="space-y-1.5">
-                  {[
-                    { label: 'Ativos', pct: 66, color: 'bg-emerald-500' },
-                    { label: 'Em Risco', pct: 16, color: 'bg-amber-500' },
-                    { label: 'VIP', pct: 8, color: 'bg-[#C9A14A]' },
-                    { label: 'Perdidos', pct: 10, color: 'bg-red-500' },
-                  ].map((seg) => (
-                    <div key={seg.label} className="flex items-center gap-2">
-                      <div className="w-12 text-[9px] text-white/30 shrink-0">{seg.label}</div>
-                      <div className="flex-1 rounded-full bg-white/[0.05] h-1.5 overflow-hidden">
-                        <div className={`h-full rounded-full ${seg.color}`} style={{ width: `${seg.pct}%` }} />
-                      </div>
-                      <div className="text-[9px] text-white/30 w-6 text-right">{seg.pct}%</div>
+                  {customers.map((c, i) => (
+                    <div key={i} className="flex items-center gap-2 rounded-md px-2 py-1.5 transition-all"
+                      style={{ background: i === tick % 4 ? 'rgba(201,161,74,.06)' : 'transparent', border: `1px solid ${i === tick % 4 ? 'rgba(201,161,74,.15)' : 'transparent'}` }}>
+                      <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${c.dot}`} />
+                      <span className="text-[9px] text-white/70 flex-1 font-medium truncate">{c.name}</span>
+                      <span className="text-[8px] text-white/25 hidden sm:block">{c.service}</span>
+                      <span className="text-[8px] text-white/25">{c.days}d</span>
+                      <span className={`text-[8px] font-medium ${c.stageColor}`}>{c.stage}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Recent automations */}
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[10px] text-white/40 mb-2">Automações recentes</p>
-              <div className="space-y-1.5">
-                {[
-                  { name: 'Maria S.', msg: 'Mensagem de reativação', time: '2min', status: 'Lida', color: 'text-emerald-400' },
-                  { name: 'João P.', msg: 'Lembrete de retorno', time: '14min', status: 'Entregue', color: 'text-blue-400' },
-                  { name: 'Ana L.', msg: 'Parabéns aniversário', time: '1h', status: 'Enviada', color: 'text-white/40' },
-                ].map((item) => (
-                  <div key={item.name} className="flex items-center gap-3 text-[10px]">
-                    <div className="h-5 w-5 rounded-full bg-white/[0.06] flex items-center justify-center text-[8px] text-white/40 shrink-0">
-                      {item.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <span className="text-white/60 flex-1 truncate">{item.name} · {item.msg}</span>
-                    <span className="text-white/20">{item.time}</span>
-                    <span className={item.color}>{item.status}</span>
-                  </div>
+            {/* WhatsApp feed */}
+            <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,.015)', border: '1px solid rgba(255,255,255,.04)' }}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[8px] text-white/30 uppercase tracking-wider">Automações · enviando agora</p>
+                <div className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" style={{ animation: 'pulse-dot 1.5s infinite' }} />
+                  <span className="text-[8px] text-emerald-400">ao vivo</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-white/50 transition-all" key={msgTick} style={{ animation: 'slide-in .4s ease' }}>
+                {msgs[msgTick % msgs.length]}
+              </p>
+              <div className="flex gap-1 mt-2">
+                {[68, 85, 91, 74].map((v, i) => (
+                  <div key={i} className="flex-1 rounded-sm h-0.5" style={{ background: i <= msgTick % 4 ? '#C9A14A' : 'rgba(255,255,255,.08)' }} />
                 ))}
               </div>
             </div>
           </div>
         </div>
       </div>
+    </AnimatedSection>
+  )
+}
+
+// ─── Feature card ──────────────────────────────────────────────────────────────
+function FeatureCard({ icon: Icon, title, desc, accent = false }: { icon: any; title: string; desc: string; accent?: boolean }) {
+  return (
+    <div className="card-hover rounded-2xl p-6 relative overflow-hidden group"
+      style={{ background: accent ? 'linear-gradient(135deg,rgba(201,161,74,.1) 0%,rgba(201,161,74,.04) 100%)' : 'rgba(255,255,255,.025)', border: accent ? '1px solid rgba(201,161,74,.25)' : '1px solid rgba(255,255,255,.06)' }}>
+      {accent && <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(circle at 0% 0%,rgba(201,161,74,.08) 0%,transparent 60%)' }} />}
+      <div className="relative">
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center mb-4" style={{ background: accent ? 'rgba(201,161,74,.2)' : 'rgba(255,255,255,.06)', border: accent ? '1px solid rgba(201,161,74,.3)' : '1px solid rgba(255,255,255,.08)' }}>
+          <Icon className="h-5 w-5" style={{ color: accent ? '#C9A14A' : 'rgba(255,255,255,.6)' }} />
+        </div>
+        <h3 className="text-sm font-semibold text-white mb-2">{title}</h3>
+        <p className="text-xs text-white/45 leading-relaxed">{desc}</p>
+      </div>
     </div>
   )
 }
 
-function FAQItem({ q, a }: { q: string; a: string }) {
+// ─── Step card ─────────────────────────────────────────────────────────────────
+function StepCard({ n, title, desc }: { n: string; title: string; desc: string }) {
+  return (
+    <div className="flex gap-4">
+      <div className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-[#C9A14A]"
+        style={{ background: 'rgba(201,161,74,.12)', border: '1px solid rgba(201,161,74,.25)' }}>
+        {n}
+      </div>
+      <div className="pt-1">
+        <p className="text-sm font-semibold text-white mb-1">{title}</p>
+        <p className="text-xs text-white/45 leading-relaxed">{desc}</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Pricing card ──────────────────────────────────────────────────────────────
+function PricingCard({ name, price, desc, features, cta, highlighted }: {
+  name: string; price: string; desc: string; features: string[]; cta: string; highlighted?: boolean
+}) {
+  return (
+    <div className={`card-hover rounded-2xl p-6 flex flex-col gap-5 relative overflow-hidden ${highlighted ? 'ring-1 ring-[#C9A14A]/40' : ''}`}
+      style={{ background: highlighted ? 'linear-gradient(145deg,rgba(201,161,74,.1),rgba(201,161,74,.04))' : 'rgba(255,255,255,.03)', border: highlighted ? '1px solid rgba(201,161,74,.3)' : '1px solid rgba(255,255,255,.06)' }}>
+      {highlighted && (
+        <div className="absolute top-0 inset-x-0 h-px" style={{ background: 'linear-gradient(90deg,transparent,#C9A14A,transparent)' }} />
+      )}
+      {highlighted && (
+        <span className="absolute top-4 right-4 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-black" style={{ background: '#C9A14A' }}>
+          Popular
+        </span>
+      )}
+      <div>
+        <p className="text-xs font-semibold text-white/50 uppercase tracking-wider mb-2">{name}</p>
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl font-bold text-white">{price}</span>
+          {price !== 'Grátis' && <span className="text-xs text-white/35">/mês</span>}
+        </div>
+        <p className="text-xs text-white/40 mt-1.5">{desc}</p>
+      </div>
+      <ul className="flex flex-col gap-2.5 flex-1">
+        {features.map((f, i) => (
+          <li key={i} className="flex items-start gap-2 text-xs text-white/60">
+            <CheckCircle className="h-3.5 w-3.5 text-[#C9A14A] flex-shrink-0 mt-0.5" />
+            {f}
+          </li>
+        ))}
+      </ul>
+      <Link href="/register"
+        className={`relative overflow-hidden w-full py-3 rounded-xl text-sm font-semibold text-center transition-all ${highlighted ? 'text-black gold-shimmer-btn' : 'text-white hover:text-[#C9A14A]'}`}
+        style={{ background: highlighted ? 'linear-gradient(135deg,#C9A14A,#E8C06A)' : 'rgba(255,255,255,.05)', border: highlighted ? 'none' : '1px solid rgba(255,255,255,.08)' }}>
+        {cta}
+      </Link>
+    </div>
+  )
+}
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+function FAQ({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div
-      className="border border-border rounded-xl overflow-hidden transition-all"
-      onClick={() => setOpen(!open)}
-    >
-      <button className="flex w-full items-center justify-between p-5 text-left gap-4">
-        <span className="text-sm font-medium text-white">{q}</span>
-        <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+    <div className="rounded-2xl overflow-hidden transition-all" style={{ background: 'rgba(255,255,255,.025)', border: '1px solid rgba(255,255,255,.06)' }}>
+      <button className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left" onClick={() => setOpen(v => !v)}>
+        <span className="text-sm font-medium text-white/85">{q}</span>
+        <ChevronDown className={`h-4 w-4 text-white/40 flex-shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && (
-        <div className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed border-t border-border pt-4">
-          {a}
-        </div>
-      )}
+      <div style={{ maxHeight: open ? 300 : 0, overflow: 'hidden', transition: 'max-height .35s cubic-bezier(.4,0,.2,1)' }}>
+        <p className="px-5 pb-5 text-xs text-white/50 leading-relaxed">{a}</p>
+      </div>
     </div>
   )
 }
 
-// ─── Main Page ─────────────────────────────────────────────────────────────
-
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const s = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', s, { passive: true })
+    return () => window.removeEventListener('scroll', s)
+  }, [])
+
   return (
-    <div className="overflow-x-hidden">
+    <div className="min-h-screen text-white" style={{ background: '#080808' }}>
+      <G />
+      <CursorGlow />
 
-      {/* ── HERO ──────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 py-20 text-center">
-        {/* Background */}
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-[#C9A14A]/6 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-3xl" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_60%,#0B0B0B_100%)]" />
-        </div>
-
-        {/* Badge */}
-        <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#C9A14A]/30 bg-[#C9A14A]/10 px-4 py-1.5 text-sm font-medium text-[#C9A14A] shadow-lg shadow-[#C9A14A]/5">
-          <Sparkles className="h-3.5 w-3.5" />
-          Novo · Motor de retenção com IA para salões
-        </div>
-
-        {/* Headline */}
-        <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[72px]">
-          Seus clientes somem.<br />
-          <span className="relative inline-block">
-            <span className="gold-text">Retoquei</span>{' '}
-          </span>
-          traz eles de volta.
-        </h1>
-
-        <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-white/55 sm:text-xl">
-          Conecte seu histórico de agendamentos, identifique quem está em risco de churn
-          e dispare mensagens personalizadas no WhatsApp — sem esforço manual.
-        </p>
-
-        {/* CTA */}
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <Link
-            href="/register"
-            className="group flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#C9A14A] to-[#B08530] px-7 py-3.5 text-base font-semibold text-[#0B0B0B] shadow-xl shadow-[#C9A14A]/25 transition-all hover:shadow-[#C9A14A]/40 hover:-translate-y-0.5"
-          >
-            Começar grátis — 14 dias
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+      {/* ── Navbar ───────────────────────────────────────────────────────── */}
+      <header className="fixed inset-x-0 top-0 z-50 transition-all duration-300"
+        style={{ background: scrolled ? 'rgba(8,8,8,.92)' : 'transparent', backdropFilter: scrolled ? 'blur(16px)' : 'none', borderBottom: scrolled ? '1px solid rgba(255,255,255,.05)' : '1px solid transparent' }}>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 md:h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src="/logo-mark.svg" alt="Q" width={28} height={28} className="flex-shrink-0" />
+            <Image src="/logo-wordmark.svg" alt="Retoquei" width={100} height={28} className="flex-shrink-0" />
           </Link>
-          <Link
-            href="#how-it-works"
-            className="flex items-center gap-2 rounded-xl border border-white/10 px-7 py-3.5 text-base font-medium text-white/60 transition-all hover:border-white/20 hover:text-white"
-          >
-            Ver como funciona
-          </Link>
-        </div>
 
-        <p className="mt-4 text-xs text-white/25">
-          Sem cartão de crédito · Cancele quando quiser · Setup em menos de 10 minutos
-        </p>
-
-        {/* Dashboard Mockup */}
-        <DashboardMockup />
-      </section>
-
-      {/* ── PROBLEMA ──────────────────────────────────────────────────── */}
-      <section className="py-20 px-6">
-        <div className="container mx-auto max-w-4xl">
-          <div className="rounded-2xl border border-red-500/10 bg-red-500/[0.04] p-10">
-            <div className="text-center mb-10">
-              <p className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-3">O problema real</p>
-              <h2 className="text-2xl font-bold text-white sm:text-3xl">
-                Você perde clientes todo mês sem perceber
-              </h2>
-              <p className="mt-3 text-white/40 max-w-xl mx-auto text-sm">
-                Salões de beleza têm taxa de churn média de 40% ao ano. A maioria dos donos descobre que perdeu um cliente só quando já é tarde demais.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {problems.map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-center gap-3 rounded-xl border border-red-500/10 bg-red-500/5 px-4 py-3">
-                  <Icon className="h-4 w-4 text-red-400 shrink-0" />
-                  <span className="text-sm text-white/70">{text}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A14A]/30 bg-[#C9A14A]/10 px-5 py-2 text-sm font-medium text-[#C9A14A]">
-                <HeartHandshake className="h-4 w-4" />
-                O Retoquei resolve cada um desses problemas
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS ─────────────────────────────────────────────────────── */}
-      <section className="border-y border-white/[0.05] bg-white/[0.02] py-14">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          {/* Nav links — desktop */}
+          <nav className="hidden md:flex items-center gap-6">
             {[
-              { value: '500+', label: 'Salões ativos', icon: Users },
-              { value: '87%', label: 'Aumento na retenção', icon: TrendingUp },
-              { value: '2.4x', label: 'Mais visitas por cliente', icon: Sparkles },
-              { value: '48h', label: 'Para ver os primeiros resultados', icon: Zap },
-            ].map((stat) => {
-              const Icon = stat.icon
-              return (
-                <div key={stat.label} className="flex flex-col items-center text-center gap-2">
-                  <Icon className="h-5 w-5 text-[#C9A14A] mb-1" />
-                  <div className="text-3xl font-black text-white">{stat.value}</div>
-                  <div className="text-xs text-white/40 max-w-[120px]">{stat.label}</div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+              { href: '#como-funciona', label: 'Como funciona' },
+              { href: '#recursos', label: 'Recursos' },
+              { href: '#precos', label: 'Preços' },
+              { href: '#faq', label: 'FAQ' },
+            ].map(l => (
+              <a key={l.href} href={l.href} className="nav-link text-sm">{l.label}</a>
+            ))}
+          </nav>
 
-      {/* ── FEATURES ──────────────────────────────────────────────────── */}
-      <section id="features" className="py-28 px-6">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3">Como funciona</p>
-            <h2 className="text-3xl font-bold text-white sm:text-4xl">
-              Retenção inteligente em 3 etapas
-            </h2>
-            <p className="mt-4 text-white/40 max-w-xl mx-auto">
-              Conecte, analise e automatize. Tudo em uma plataforma, sem precisar de time de marketing.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {features.map((feature, i) => {
-              const Icon = feature.icon
-              return (
-                <div
-                  key={feature.title}
-                  className={`group relative rounded-2xl border ${feature.border} bg-gradient-to-b from-white/[0.04] to-transparent p-7 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30`}
-                >
-                  <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${feature.bg} mb-5 transition-all group-hover:scale-110`}>
-                    <Icon className={`h-6 w-6 ${feature.color}`} />
-                  </div>
-                  <div className={`mb-3 text-xs font-semibold ${feature.color}`}>{feature.metrics}</div>
-                  <h3 className="text-lg font-semibold text-white mb-3">{feature.title}</h3>
-                  <p className="text-sm leading-relaxed text-white/45">{feature.description}</p>
-                  <div className="absolute top-4 right-4 text-5xl font-black text-white/[0.03] select-none">0{i + 1}</div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ──────────────────────────────────────────────── */}
-      <section id="how-it-works" className="bg-white/[0.02] py-28 px-6">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3">Passo a passo</p>
-            <h2 className="text-3xl font-bold text-white sm:text-4xl">Configure uma vez, funciona sempre</h2>
-            <p className="mt-4 text-white/40 max-w-lg mx-auto">
-              Sem código, sem complexidade. Em menos de 30 minutos você já tem seu primeiro fluxo rodando.
-            </p>
-          </div>
-
-          <div className="relative space-y-6">
-            {/* Vertical line */}
-            <div className="absolute left-8 top-8 bottom-8 w-px bg-gradient-to-b from-[#C9A14A]/40 via-[#C9A14A]/20 to-transparent hidden sm:block" />
-
-            {steps.map((step, i) => {
-              const Icon = step.icon
-              return (
-                <div key={step.num} className="flex gap-6 items-start">
-                  <div className="relative z-10 flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-[#C9A14A]/30 bg-[#C9A14A]/10 shadow-lg shadow-[#C9A14A]/10">
-                    <Icon className="h-6 w-6 text-[#C9A14A]" />
-                  </div>
-                  <div className="flex-1 rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6">
-                    <div className="text-xs font-bold text-[#C9A14A]/60 mb-1">{step.num}</div>
-                    <h3 className="text-base font-semibold text-white mb-2">{step.title}</h3>
-                    <p className="text-sm leading-relaxed text-white/45">{step.description}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="mt-10 text-center">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#C9A14A] to-[#B08530] px-7 py-3.5 text-sm font-semibold text-[#0B0B0B] shadow-lg shadow-[#C9A14A]/20 hover:shadow-[#C9A14A]/40 transition-all hover:-translate-y-0.5"
-            >
-              Começar agora — grátis
-              <ArrowRight className="h-4 w-4" />
+          {/* CTAs — desktop */}
+          <div className="hidden md:flex items-center gap-3">
+            <Link href="/login" className="text-sm text-white/55 hover:text-white transition-colors px-3 py-1.5">
+              Entrar
+            </Link>
+            <Link href="/register"
+              className="relative overflow-hidden gold-shimmer-btn text-sm font-semibold px-4 py-2 rounded-xl text-black transition-all hover:shadow-[0_0_20px_rgba(201,161,74,.35)]"
+              style={{ background: 'linear-gradient(135deg,#C9A14A,#E8C06A)' }}>
+              Começar grátis
             </Link>
           </div>
+
+          {/* Mobile menu */}
+          <MobileMenu />
+        </div>
+      </header>
+
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section className="relative pt-28 md:pt-36 pb-12 md:pb-20 px-4 sm:px-6 overflow-hidden">
+        <Particles />
+
+        {/* Background radials */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse,rgba(201,161,74,.08) 0%,transparent 65%)', filter: 'blur(40px)' }} />
+        <div className="absolute top-20 -right-32 w-[400px] h-[400px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse,rgba(201,161,74,.05) 0%,transparent 60%)' }} />
+
+        <div className="relative max-w-5xl mx-auto text-center">
+          {/* Grupo Império badge */}
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium mb-5"
+            style={{ background: 'rgba(201,161,74,.1)', border: '1px solid rgba(201,161,74,.2)', color: '#C9A14A' }}>
+            <Star className="h-3 w-3" />
+            Uma empresa do Grupo Império
+          </div>
+
+          {/* Live badge */}
+          <div className="flex justify-center mb-6">
+            <LiveBadge />
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight mb-5 tracking-tight">
+            Seu salão para de{' '}
+            <span className="relative inline-block">
+              <span style={{
+                background: 'linear-gradient(135deg,#C9A14A 0%,#F0C87A 50%,#C9A14A 100%)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                animation: 'gradient-x 4s ease infinite',
+              }}>
+                perder clientes
+              </span>
+            </span>
+            <br className="hidden sm:block" /> e começa a recuperá-los.
+          </h1>
+
+          {/* Subheadline */}
+          <p className="text-sm sm:text-base md:text-lg text-white/50 max-w-2xl mx-auto leading-relaxed mb-8 md:mb-10">
+            Conecte seu sistema de agendamento, identifique clientes em risco e dispare
+            mensagens personalizadas no WhatsApp — totalmente automático.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+            <Link href="/register"
+              className="relative overflow-hidden gold-shimmer-btn w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-black transition-all hover:shadow-[0_0_28px_rgba(201,161,74,.4)] hover:scale-[1.02]"
+              style={{ background: 'linear-gradient(135deg,#C9A14A,#E8C06A)' }}>
+              Começar gratuitamente
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a href="#como-funciona"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-medium text-white/70 hover:text-white transition-all hover:bg-white/5"
+              style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+              Ver como funciona
+              <ChevronRight className="h-4 w-4" />
+            </a>
+          </div>
+          <p className="text-xs text-white/25">Sem cartão de crédito · 14 dias grátis · Cancele quando quiser</p>
+
+          {/* Dashboard */}
+          <DashboardMockup />
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ──────────────────────────────────────────────── */}
-      <section className="py-28 px-6">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3">Depoimentos</p>
-            <h2 className="text-3xl font-bold text-white sm:text-4xl">
-              Salões que transformaram sua retenção
-            </h2>
-          </div>
+      {/* ── Stats ────────────────────────────────────────────────────────── */}
+      <AnimatedSection direction="up" className="py-12 md:py-16 px-4 sm:px-6 border-y border-white/[0.04]"
+        style={{ background: 'rgba(255,255,255,.015)' } as any}>
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {[
+            { n: 2800, suf: '+', label: 'Salões ativos', pre: '' },
+            { n: 94, suf: '%', label: 'Taxa de entrega', pre: '' },
+            { n: 3, suf: 'x', label: 'Mais retenção', pre: '' },
+            { n: 2, suf: 'M+', label: 'Msgs enviadas', pre: '' },
+          ].map((s, i) => (
+            <div key={i}>
+              <p className="text-2xl md:text-3xl font-bold text-[#C9A14A] mb-1">
+                {s.pre}<AnimatedCounter target={s.n} suffix={s.suf} />
+              </p>
+              <p className="text-xs text-white/40">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </AnimatedSection>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <div
-                key={t.name}
-                className="flex flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] p-7 transition-all hover:border-[#C9A14A]/20 hover:shadow-xl hover:shadow-black/20"
-              >
-                {/* Stars */}
-                <div className="flex gap-0.5 mb-4">
-                  {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[#C9A14A] text-[#C9A14A]" />
-                  ))}
-                </div>
+      {/* ── Como funciona ────────────────────────────────────────────────── */}
+      <section id="como-funciona" className="py-16 md:py-24 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection direction="up" className="text-center mb-12 md:mb-16">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3 block">Como funciona</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">Configure em menos de 10 minutos</h2>
+            <p className="text-sm text-white/45 max-w-xl mx-auto">Do zero ao primeiro WhatsApp automático enviado sem precisar tocar no código.</p>
+          </AnimatedSection>
 
-                {/* Metric highlight */}
-                <div className="mb-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#C9A14A]/10 border border-[#C9A14A]/20 px-3 py-1 text-xs font-semibold text-[#C9A14A]">
-                  <TrendingUp className="h-3 w-3" />
-                  {t.metric}
-                </div>
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <AnimatedSection direction="left" className="space-y-6">
+              {[
+                { n: '01', title: 'Conecte seu sistema de agendamento', desc: 'Importe via CSV, webhook ou integração direta com Trinks, Booksy e outros. Seus clientes entram automaticamente.' },
+                { n: '02', title: 'A IA analisa cada cliente', desc: 'Calculamos LTV, frequência, risco de abandono e momento ideal de retorno. Tudo em tempo real.' },
+                { n: '03', title: 'Automações disparam sozinhas', desc: 'WhatsApp personalizado enviado no momento certo — pós-visita, aniversário, risco, perda — sem ação manual.' },
+                { n: '04', title: 'Acompanhe a recuperação', desc: 'Dashboard mostra clientes recuperados, receita gerada e taxa de entrega em tempo real.' },
+              ].map(s => <StepCard key={s.n} {...s} />)}
+            </AnimatedSection>
 
-                <p className="flex-1 text-sm leading-relaxed text-white/55 italic mb-6">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-
-                <div className="flex items-center gap-3 border-t border-white/[0.06] pt-5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C9A14A]/20 text-xs font-bold text-[#C9A14A]">
-                    {t.avatar}
+            <AnimatedSection direction="right" className="hidden md:block">
+              <div className="rounded-2xl p-6 space-y-3" style={{ background: 'rgba(255,255,255,.025)', border: '1px solid rgba(255,255,255,.06)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,161,74,.15)', border: '1px solid rgba(201,161,74,.25)' }}>
+                    <Bot className="h-4 w-4 text-[#C9A14A]" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-white">{t.name}</div>
-                    <div className="text-xs text-white/35">{t.role} · {t.salon}</div>
+                    <p className="text-xs font-semibold text-white">Automação ativa</p>
+                    <p className="text-[10px] text-white/35">Pós-visita · enviando agora</p>
                   </div>
+                  <span className="ml-auto text-[9px] font-medium px-2 py-0.5 rounded-full text-emerald-400" style={{ background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.2)' }}>
+                    Live
+                  </span>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRICING ───────────────────────────────────────────────────── */}
-      <section id="pricing" className="bg-white/[0.02] py-28 px-6">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3">Planos</p>
-            <h2 className="text-3xl font-bold text-white sm:text-4xl">
-              Preços simples e transparentes
-            </h2>
-            <p className="mt-4 text-white/40">
-              Sem taxa de setup · Sem contrato mínimo · Cancele quando quiser
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative flex flex-col rounded-2xl border p-7 transition-all ${
-                  plan.highlighted
-                    ? 'border-[#C9A14A]/40 bg-gradient-to-b from-[#C9A14A]/8 to-[#C9A14A]/[0.03] shadow-xl shadow-[#C9A14A]/10'
-                    : 'border-white/[0.08] bg-white/[0.03] hover:border-white/[0.14]'
-                }`}
-              >
-                {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#C9A14A] px-4 py-1 text-xs font-bold text-[#0B0B0B] shadow-lg shadow-[#C9A14A]/30">
-                      <Star className="h-3 w-3 fill-current" /> Mais popular
-                    </span>
+                {[
+                  { client: 'Ana B.', msg: 'Obrigada pela visita, Ana! Já marcamos seu retoque para daqui 28 dias 💛', time: 'agora', status: '✓✓' },
+                  { client: 'Paula M.', msg: 'Paula, sentimos sua falta! Que tal um retorno com 15% de desconto especial?', time: '3min', status: '✓✓' },
+                  { client: 'Carla S.', msg: 'Feliz aniversário, Carla! 🎂 Um presente exclusivo te espera no salão.', time: '8min', status: '✓' },
+                ].map((m, i) => (
+                  <div key={i} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,.02)', border: '1px solid rgba(255,255,255,.04)' }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-semibold text-white/70">{m.client}</span>
+                      <span className="text-[9px] text-white/25">{m.time} · {m.status}</span>
+                    </div>
+                    <p className="text-[10px] text-white/40 leading-relaxed">{m.msg}</p>
                   </div>
-                )}
-
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-                  <p className="text-xs text-white/40 mt-0.5">{plan.description}</p>
-                  <div className="mt-5 flex items-end gap-1">
-                    <span className="text-4xl font-black text-white">{plan.price}</span>
-                    <span className="text-white/40 text-sm mb-1">{plan.per}</span>
-                  </div>
-                  <p className="text-xs text-white/30 mt-1">14 dias grátis para começar</p>
-                </div>
-
-                <ul className="space-y-2.5 flex-1 mb-7">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-white/65">
-                      <CheckCircle className="h-4 w-4 text-[#C9A14A] shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                  {plan.missing.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-white/20">
-                      <XCircle className="h-4 w-4 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href={plan.href}
-                  className={`block w-full rounded-xl py-3 text-center text-sm font-semibold transition-all ${
-                    plan.highlighted
-                      ? 'bg-gradient-to-r from-[#C9A14A] to-[#B08530] text-[#0B0B0B] shadow-lg shadow-[#C9A14A]/20 hover:shadow-[#C9A14A]/40 hover:-translate-y-0.5'
-                      : 'border border-white/10 text-white hover:border-[#C9A14A]/30 hover:text-[#C9A14A]'
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
+                ))}
               </div>
-            ))}
-          </div>
-
-          <p className="text-center text-xs text-white/25 mt-8">
-            Todos os planos incluem 14 dias grátis. Sem necessidade de cartão de crédito.
-          </p>
-        </div>
-      </section>
-
-      {/* ── FAQ ────────────────────────────────────────────────────────── */}
-      <section className="py-28 px-6">
-        <div className="container mx-auto max-w-2xl">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3">FAQ</p>
-            <h2 className="text-3xl font-bold text-white sm:text-4xl">Perguntas frequentes</h2>
-          </div>
-          <div className="space-y-3">
-            {faqs.map((faq) => (
-              <FAQItem key={faq.q} q={faq.q} a={faq.a} />
-            ))}
+            </AnimatedSection>
           </div>
         </div>
       </section>
 
-      {/* ── FINAL CTA ─────────────────────────────────────────────────── */}
-      <section className="py-28 px-6">
-        <div className="container mx-auto max-w-3xl">
-          <div className="relative overflow-hidden rounded-3xl border border-[#C9A14A]/20 bg-gradient-to-br from-[#C9A14A]/10 via-[#C9A14A]/5 to-transparent p-12 text-center">
-            {/* Decorative */}
-            <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-[#C9A14A]/15 rounded-full blur-3xl" />
-            <div className="pointer-events-none absolute bottom-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-2xl" />
+      {/* ── Recursos ─────────────────────────────────────────────────────── */}
+      <section id="recursos" className="py-16 md:py-24 px-4 sm:px-6" style={{ background: 'rgba(255,255,255,.012)' }}>
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection direction="up" className="text-center mb-12">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3 block">Recursos</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">Tudo que seu salão precisa</h2>
+            <p className="text-sm text-white/45 max-w-xl mx-auto">Uma plataforma completa de retenção, do CRM às mensagens automáticas.</p>
+          </AnimatedSection>
 
-            <div className="relative">
-              <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-[#C9A14A]/30 bg-[#C9A14A]/15 shadow-xl shadow-[#C9A14A]/20">
-                <RetoqueiLogoMark size={32} />
-              </div>
-              <h2 className="text-3xl font-bold text-white sm:text-4xl mb-4">
-                Comece a reter clientes hoje
-              </h2>
-              <p className="text-white/50 max-w-lg mx-auto mb-8 leading-relaxed">
-                14 dias grátis, sem cartão de crédito. Configure em menos de 10 minutos
-                e veja seus primeiros clientes voltando ainda esta semana.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  href="/register"
-                  className="group flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#C9A14A] to-[#B08530] px-8 py-4 text-base font-semibold text-[#0B0B0B] shadow-xl shadow-[#C9A14A]/30 transition-all hover:shadow-[#C9A14A]/50 hover:-translate-y-0.5"
-                >
-                  Começar trial gratuito
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-                <Link
-                  href="/login"
-                  className="text-sm text-white/40 hover:text-white transition-colors"
-                >
-                  Já tenho conta →
-                </Link>
-              </div>
-
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-xs text-white/30">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="h-3.5 w-3.5 text-emerald-400" /> 14 dias grátis
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="h-3.5 w-3.5 text-emerald-400" /> Sem cartão de crédito
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="h-3.5 w-3.5 text-emerald-400" /> Cancele quando quiser
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-blue-400" /> LGPD compliant
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ────────────────────────────────────────────────────── */}
-      <footer className="border-t border-white/[0.06] py-14 px-6">
-        <div className="container mx-auto">
-          <div className="grid gap-10 md:grid-cols-5">
-            <div className="md:col-span-2">
-              <div className="mb-4">
-                <RetoqueiWordmark height={32} />
-              </div>
-              <p className="text-sm text-white/35 leading-relaxed max-w-xs">
-                Motor de retenção inteligente para salões de beleza. Menos churn, mais recorrência.
-              </p>
-              <div className="mt-5 flex items-center gap-2 text-xs text-white/25">
-                <Phone className="h-3.5 w-3.5" />
-                Suporte via WhatsApp
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {[
-              { title: 'Produto', links: [{ label: 'Funcionalidades', href: '/#features' }, { label: 'Preços', href: '/pricing' }, { label: 'Como funciona', href: '/#how-it-works' }] },
-              { title: 'Empresa', links: [{ label: 'Sobre', href: '#' }, { label: 'Blog', href: '#' }, { label: 'Contato', href: '/contact' }] },
-              { title: 'Legal', links: [{ label: 'Privacidade', href: '#' }, { label: 'Termos', href: '#' }, { label: 'LGPD', href: '#' }] },
-            ].map((col) => (
-              <div key={col.title}>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-4">{col.title}</h4>
-                <ul className="space-y-2.5">
-                  {col.links.map((link) => (
-                    <li key={link.label}>
-                      <Link href={link.href} className="text-sm text-white/35 hover:text-white transition-colors">
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              { icon: Users, title: 'CRM de Clientes', desc: 'Perfil completo de cada cliente: histórico, LTV, serviços preferidos, profissional favorito e muito mais.', accent: true },
+              { icon: AlertTriangle, title: 'Alertas de Risco', desc: 'Identificamos clientes prestes a abandonar antes que isso aconteça, com score de risco em tempo real.' },
+              { icon: MessageSquare, title: 'WhatsApp Automático', desc: 'Mensagens personalizadas disparadas no momento certo — pós-visita, aniversário, risco, reativação.' },
+              { icon: BarChart3, title: 'Dashboard Analítico', desc: 'Evolução mensal, taxa de retenção, LTV médio, receita recuperada e muito mais em um só lugar.' },
+              { icon: Bot, title: 'Fluxos Inteligentes', desc: '7 automações pré-configuradas e prontas para usar. Crie fluxos personalizados sem código.' },
+              { icon: Zap, title: 'Segmentação Avançada', desc: 'Segmentos dinâmicos por estágio de vida, frequência, ticket médio, aniversário e dezenas de critérios.' },
+              { icon: CalendarCheck, title: 'Sync de Agendamentos', desc: 'Importação automática de todos os agendamentos. Suporte a CSV, webhook e integrações diretas.' },
+              { icon: TrendingUp, title: 'Receita Recuperada', desc: 'Veja exatamente quanto dinheiro a plataforma trouxe de volta: cada cliente reativado rastreado.' },
+              { icon: Phone, title: 'Templates Aprovados', desc: 'Biblioteca de templates prontos, aprovados pelo Meta. Personalize com nome, serviço e data.' },
+            ].map((f, i) => (
+              <AnimatedSection key={i} direction="up" delay={i * 0.05}>
+                <FeatureCard {...f} />
+              </AnimatedSection>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-12 border-t border-white/[0.05] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-white/20">
-              © {new Date().getFullYear()} Retoquei. Todos os direitos reservados.
-            </p>
-            <div className="flex items-center gap-1.5 text-xs text-white/20">
-              <MessageSquare className="h-3 w-3" />
-              contato@retoquei.com.br
+      {/* ── Prova social ─────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection direction="up" className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">O que os salões dizem</h2>
+            <p className="text-sm text-white/40">Resultados reais de quem já usa o Retoquei</p>
+          </AnimatedSection>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            {[
+              { text: 'Em 2 semanas recuperamos 34 clientes que não vinham há meses. O WhatsApp automático mudou o jogo.', name: 'Mariana Costa', role: 'Salão Belle · São Paulo', rating: 5 },
+              { text: 'Antes eu perdia clientes sem nem saber. Agora o Retoquei avisa quem está sumindo e manda mensagem automaticamente.', name: 'Carlos Andrade', role: 'Studio CA · Belo Horizonte', rating: 5 },
+              { text: 'A integração com meu sistema de agenda foi instantânea. Em 10 minutos já estava funcionando.', name: 'Patrícia Lima', role: 'Espaço Patricia · Curitiba', rating: 5 },
+            ].map((t, i) => (
+              <AnimatedSection key={i} direction="up" delay={i * 0.1}>
+                <div className="card-hover rounded-2xl p-5 flex flex-col gap-4 h-full"
+                  style={{ background: 'rgba(255,255,255,.025)', border: '1px solid rgba(255,255,255,.06)' }}>
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: t.rating }).map((_, j) => (
+                      <Star key={j} className="h-3.5 w-3.5 fill-[#C9A14A] text-[#C9A14A]" />
+                    ))}
+                  </div>
+                  <p className="text-xs text-white/60 leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
+                  <div>
+                    <p className="text-xs font-semibold text-white">{t.name}</p>
+                    <p className="text-[10px] text-white/35">{t.role}</p>
+                  </div>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Preços ───────────────────────────────────────────────────────── */}
+      <section id="precos" className="py-16 md:py-24 px-4 sm:px-6" style={{ background: 'rgba(255,255,255,.012)' }}>
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection direction="up" className="text-center mb-12">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#C9A14A] mb-3 block">Preços</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">Simples e sem surpresas</h2>
+            <p className="text-sm text-white/45 max-w-xl mx-auto">14 dias grátis em qualquer plano. Sem cartão de crédito para começar.</p>
+          </AnimatedSection>
+
+          <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
+            <AnimatedSection direction="up" delay={0}>
+              <PricingCard
+                name="Starter"
+                price="R$197"
+                desc="Perfeito para começar"
+                features={['Até 500 clientes', '3 automações ativas', '1.000 msgs/mês', 'CSV import', 'Suporte por e-mail']}
+                cta="Começar grátis"
+              />
+            </AnimatedSection>
+            <AnimatedSection direction="up" delay={0.1}>
+              <PricingCard
+                name="Growth"
+                price="R$397"
+                desc="Para salões em expansão"
+                features={['Até 2.000 clientes', 'Automações ilimitadas', '5.000 msgs/mês', 'Webhook + CSV', 'Segmentação avançada', 'Suporte prioritário']}
+                cta="Começar grátis"
+                highlighted
+              />
+            </AnimatedSection>
+            <AnimatedSection direction="up" delay={0.2}>
+              <PricingCard
+                name="Pro"
+                price="R$697"
+                desc="Para redes e franquias"
+                features={['Clientes ilimitados', 'Automações ilimitadas', 'Msgs ilimitadas', 'Multi-unidade', 'API + webhooks', 'Gerente de sucesso']}
+                cta="Falar com vendas"
+              />
+            </AnimatedSection>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ──────────────────────────────────────────────────────────── */}
+      <section id="faq" className="py-16 md:py-24 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto">
+          <AnimatedSection direction="up" className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Perguntas frequentes</h2>
+            <p className="text-sm text-white/40">Tudo que você precisa saber antes de começar</p>
+          </AnimatedSection>
+          <AnimatedSection direction="up" delay={0.1} className="space-y-2">
+            {[
+              { q: 'O Retoquei substitui meu sistema de agendamento?', a: 'Não. O Retoquei se conecta ao seu sistema atual (Trinks, Booksy, CSV, etc.) e funciona como uma camada de retenção por cima. Você continua usando o mesmo sistema de agendamentos.' },
+              { q: 'Como funciona o WhatsApp?', a: 'Usamos a API oficial do WhatsApp (Meta Cloud API). Seus clientes recebem mensagens do número do seu salão, com templates aprovados pelo Meta. Sem risco de bloqueio.' },
+              { q: 'Meus dados ficam seguros?', a: 'Sim. Utilizamos infraestrutura enterprise com criptografia em repouso e em trânsito. Seus dados nunca são compartilhados com terceiros. Conformidade total com LGPD.' },
+              { q: 'Quanto tempo leva para configurar?', a: 'A maioria dos salões está operacional em menos de 15 minutos. O assistente de onboarding guia você passo a passo: conexão, importação, WhatsApp e primeira automação.' },
+              { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem multas ou fidelidade. Você pode cancelar pelo painel a qualquer momento. Seus dados ficam disponíveis para exportação por 30 dias após o cancelamento.' },
+              { q: 'O que é o Grupo Império?', a: 'O Grupo Império é um grupo empresarial brasileiro focado em tecnologia e inovação para o setor de serviços. O Retoquei é uma das empresas do portfólio, especializada em retenção de clientes para salões de beleza.' },
+            ].map((f, i) => <FAQ key={i} {...f} />)}
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* ── CTA final ────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 px-4 sm:px-6">
+        <AnimatedSection direction="up" className="max-w-3xl mx-auto text-center">
+          <div className="relative rounded-3xl p-8 md:p-12 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg,rgba(201,161,74,.12) 0%,rgba(201,161,74,.05) 50%,rgba(201,161,74,.1) 100%)', border: '1px solid rgba(201,161,74,.25)' }}>
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%,rgba(201,161,74,.15) 0%,transparent 60%)' }} />
+            <div className="relative">
+              <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium mb-6"
+                style={{ background: 'rgba(201,161,74,.15)', border: '1px solid rgba(201,161,74,.3)', color: '#C9A14A' }}>
+                <Sparkles className="h-3 w-3" />
+                14 dias grátis · sem cartão
+              </div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
+                Pare de perder clientes.<br />Comece a recuperá-los.
+              </h2>
+              <p className="text-sm text-white/50 mb-8 max-w-lg mx-auto leading-relaxed">
+                Junte-se a mais de 2.800 salões que já usam o Retoquei para crescer com inteligência.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href="/register"
+                  className="relative overflow-hidden gold-shimmer-btn w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-bold text-black transition-all hover:shadow-[0_0_32px_rgba(201,161,74,.5)] hover:scale-[1.02]"
+                  style={{ background: 'linear-gradient(135deg,#C9A14A,#E8C06A)' }}>
+                  Criar conta grátis
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link href="/contact"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-medium text-white/60 hover:text-white transition-all"
+                  style={{ border: '1px solid rgba(255,255,255,.1)' }}>
+                  Falar com a equipe
+                </Link>
+              </div>
             </div>
+          </div>
+        </AnimatedSection>
+      </section>
+
+      {/* ── Footer ───────────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/[0.05] py-10 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+            <div>
+              <Link href="/" className="flex items-center gap-2.5 mb-2">
+                <Image src="/logo-mark.svg" alt="Q" width={24} height={24} />
+                <Image src="/logo-wordmark.svg" alt="Retoquei" width={90} height={24} />
+              </Link>
+              <p className="text-xs text-white/30">Uma empresa do Grupo Império</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-10 gap-y-2">
+              {[
+                { href: '#como-funciona', label: 'Como funciona' },
+                { href: '#recursos', label: 'Recursos' },
+                { href: '#precos', label: 'Preços' },
+                { href: '/login', label: 'Entrar' },
+                { href: '/register', label: 'Cadastrar' },
+                { href: '/contact', label: 'Contato' },
+              ].map(l => (
+                <Link key={l.href} href={l.href} className="text-xs text-white/35 hover:text-white/70 transition-colors">
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-6 border-t border-white/[0.04]">
+            <p className="text-[11px] text-white/20">© 2026 Retoquei · Grupo Império. Todos os direitos reservados.</p>
+            <p className="text-[11px] text-white/20">Feito com ♥ no Brasil</p>
           </div>
         </div>
       </footer>
