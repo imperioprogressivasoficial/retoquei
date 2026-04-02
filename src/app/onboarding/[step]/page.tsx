@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Webhook, Lock, CheckCircle, ArrowRight, Loader2, Smartphone, RefreshCw, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { FileText, Lock, CheckCircle, ArrowRight, Loader2, Smartphone, RefreshCw, ExternalLink, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { RetoqueiLogoMark } from '@/components/ui/RetoqueiLogo'
 
@@ -181,20 +181,6 @@ function Step3({ onNext }: { onNext: () => void }) {
           <div>
             <p className="text-sm font-semibold text-white group-hover:text-gold transition-colors">Importação via CSV</p>
             <p className="text-xs text-muted-foreground">Faça upload de uma planilha com seus clientes e agendamentos</p>
-          </div>
-          <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground group-hover:text-gold" />
-        </button>
-
-        <button
-          onClick={() => router.push('/integrations')}
-          className="w-full flex items-center gap-4 rounded-xl border border-border bg-[#161616] p-4 hover:border-gold/30 hover:bg-gold/5 transition-all text-left group"
-        >
-          <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-            <Webhook className="h-5 w-5 text-purple-400" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white group-hover:text-gold transition-colors">Webhook / API</p>
-            <p className="text-xs text-muted-foreground">Conecte qualquer plataforma via API ou webhook</p>
           </div>
           <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground group-hover:text-gold" />
         </button>

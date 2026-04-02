@@ -1,6 +1,5 @@
 import type { IConnector } from './connector.interface'
 import { CSVConnector } from './csv.connector'
-import { WebhookAdapterConnector } from './webhook-adapter.connector'
 import { TrinksConnector } from './trinks.connector'
 import type { ConnectorType } from '@/types/connector.types'
 
@@ -10,7 +9,6 @@ import type { ConnectorType } from '@/types/connector.types'
 
 const registry = new Map<ConnectorType, () => IConnector>([
   ['CSV', () => new CSVConnector()],
-  ['WEBHOOK', () => new WebhookAdapterConnector()],
   ['TRINKS', () => new TrinksConnector()],
 ])
 
