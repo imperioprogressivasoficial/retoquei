@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import {
   ArrowRight, BarChart3, Bot, CheckCircle, ChevronDown,
@@ -195,8 +196,8 @@ function DashboardMockup() {
         <div className="flex" style={{ minHeight: 400 }}>
           {/* Sidebar */}
           <div className="hidden sm:flex w-[52px] flex-col items-center gap-3 py-4 border-r border-white/[0.04]" style={{ background: '#080808' }}>
-            <div className="h-8 w-8 rounded-xl flex items-center justify-center mb-1 text-lg font-bold" style={{ background: 'rgba(201,161,74,.15)', color: '#C9A14A' }}>
-              Q
+            <div className="h-8 w-8 rounded-xl flex items-center justify-center mb-1" style={{ background: 'rgba(201,161,74,.15)' }}>
+              <Image src="/logo-mark.svg" alt="Q" width={18} height={18} />
             </div>
             {[
               { Icon: BarChart3, active: true },
@@ -417,8 +418,9 @@ export default function LandingPage() {
         style={{ background: scrolled ? 'rgba(8,8,8,.92)' : 'transparent', backdropFilter: scrolled ? 'blur(16px)' : 'none', borderBottom: scrolled ? '1px solid rgba(255,255,255,.05)' : '1px solid transparent' }}>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 font-bold text-lg">
-            <span style={{ color: '#C9A14A' }}>Retoquei</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src="/logo-mark.svg" alt="Q" width={28} height={28} className="flex-shrink-0" />
+            <Image src="/logo-wordmark.svg" alt="Retoquei" width={120} height={32} className="flex-shrink-0" />
           </Link>
 
           {/* Nav links — desktop */}
@@ -751,8 +753,9 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
             <div>
-              <Link href="/" className="text-sm font-bold mb-2 inline-block" style={{ color: '#C9A14A' }}>
-                Retoquei
+              <Link href="/" className="flex items-center gap-2.5 mb-2">
+                <Image src="/logo-mark.svg" alt="Q" width={24} height={24} />
+                <Image src="/logo-wordmark.svg" alt="Retoquei" width={100} height={24} />
               </Link>
               <p className="text-xs text-white/30">Uma empresa do Grupo Império</p>
             </div>
