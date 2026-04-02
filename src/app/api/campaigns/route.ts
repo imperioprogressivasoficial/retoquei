@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-const schema = z.object({
+const createSchema = z.object({
   name: z.string().min(1).max(100),
   segmentId: z.string().optional(),
   templateId: z.string().optional(),
@@ -18,6 +18,26 @@ async function getTenantId(supabaseUserId: string) {
   return dbUser?.ownedTenants[0]?.tenantId ?? null
 }
 
+export async function GET(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const tenantId = await getTenantId(user.id)
+  if (!tenantId) return NextResponse.json({ error: 'No workspace' }, { status: 400 })
+
+  const campaigns = await prisma.campaign.findMany({
+    where: { tenantId },
+    include: {
+      segment: { select: { id: true, name: true } },
+      template: { select: { id: true, name: true, body: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  return NextResponse.json({ campaigns })
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -27,7 +47,7 @@ export async function POST(req: NextRequest) {
   if (!tenantId) return NextResponse.json({ error: 'No workspace' }, { status: 400 })
 
   const body = await req.json()
-  const result = schema.safeParse(body)
+  const result = createSchema.safeParse(body)
   if (!result.success) return NextResponse.json({ error: result.error.errors[0].message }, { status: 400 })
 
   const campaign = await prisma.campaign.create({

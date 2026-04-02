@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createTenant } from '@/services/tenant.service'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 const createTenantSchema = z.object({
@@ -21,6 +22,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Ensure user exists in database
+    let dbUser = await prisma.user.findUnique({ where: { supabaseId: user.id } })
+    if (!dbUser) {
+      dbUser = await prisma.user.create({
+        data: {
+          supabaseId: user.id,
+          email: user.email || '',
+          fullName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+        },
+      })
+    }
+
     const tenant = await createTenant({
       name: result.data.name,
       slug: result.data.slug,

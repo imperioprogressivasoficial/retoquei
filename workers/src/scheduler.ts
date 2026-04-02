@@ -14,6 +14,7 @@ const queues = {
   segmentRefresh: new Queue('segment-refresh', { connection: redis }),
   messageSend: new Queue('message-send', { connection: redis }),
   retryFailed: new Queue('retry-failed-messages', { connection: redis }),
+  flowExecutor: new Queue('flow-executor', { connection: redis }),
 }
 
 export async function setupScheduler() {
@@ -74,6 +75,33 @@ export async function setupScheduler() {
       removeOnComplete: { count: 5 },
     },
   )
+
+  // ── Daily flow trigger checks (every day at different times) ──────────────
+  // Get all tenants to create per-tenant flow jobs
+  const tenants = await prisma.tenant.findMany({ select: { id: true } })
+  for (const tenant of tenants) {
+    // Check DAYS_INACTIVE flows every 6 hours
+    await queues.flowExecutor.add(
+      'check-inactive-flows',
+      { type: 'trigger_inactive', tenantId: tenant.id },
+      {
+        repeat: { pattern: '0 */6 * * *' }, // Every 6 hours
+        jobId: `trigger-inactive-${tenant.id}`,
+        removeOnComplete: { count: 5 },
+      },
+    )
+
+    // Check BIRTHDAY_MONTH flows daily at 08:00 BRT
+    await queues.flowExecutor.add(
+      'check-birthday-flows',
+      { type: 'trigger_birthday', tenantId: tenant.id },
+      {
+        repeat: { pattern: '0 11 * * *' }, // 08:00 BRT = 11:00 UTC
+        jobId: `trigger-birthday-${tenant.id}`,
+        removeOnComplete: { count: 5 },
+      },
+    )
+  }
 
   console.log('[Scheduler] ✅ All cron jobs registered')
 }

@@ -46,13 +46,13 @@ export async function POST(req: NextRequest) {
 Crie 3 variações de mensagem de WhatsApp para ${TYPE_MAP[body.type]}.
 
 Regras:
-- Máximo 160 caracteres por mensagem
+- Máximo 1024 caracteres por mensagem (WhatsApp)
 - Tom: ${TONE_MAP[body.tone]}
 - Variáveis disponíveis: ${body.variables.length ? body.variables.join(', ') : 'nenhuma'} (formato {{variavel}})
 - Escreva em português brasileiro
-- Máximo 1 emoji por mensagem
+- Máximo 2 emojis por mensagem
 - Cada variação deve ter abordagem diferente
-- Sempre termine com uma call-to-action
+- Sempre termine com uma call-to-action clara
 - Contexto adicional: ${body.context?.trim() || 'nenhum'}
 
 Responda APENAS com JSON válido, sem texto extra:

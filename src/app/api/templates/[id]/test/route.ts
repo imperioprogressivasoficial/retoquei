@@ -39,6 +39,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .replace(/\{\{last_visit_date\}\}/g, new Date(Date.now() - 28 * 86400000).toLocaleDateString('pt-BR'))
     .replace(/\{\{predicted_return_date\}\}/g, new Date(Date.now() + 7 * 86400000).toLocaleDateString('pt-BR'))
 
+  // WhatsApp validation
+  const charCount = rendered.length
+  const warnings: string[] = []
+  if (charCount > 1024) {
+    warnings.push(`Mensagem excede limite WhatsApp de 1024 caracteres (${charCount} chars)`)
+  }
+  if (charCount > 160 && charCount < 500) {
+    warnings.push('Mensagem curta - considere adicionar mais contexto')
+  }
+
   console.log(`[MOCK] Test message to ${result.data.phone}:\n${rendered}`)
 
   await prisma.outboundMessage.create({
@@ -53,5 +63,5 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     },
   }).catch(() => {})
 
-  return NextResponse.json({ ok: true, rendered, mode: 'mock' })
+  return NextResponse.json({ ok: true, rendered, mode: 'mock', charCount, warnings })
 }

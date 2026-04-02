@@ -73,6 +73,11 @@ export class CSVConnector implements IConnector {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
+
+      // Skip completely empty rows
+      const allEmpty = Object.values(row).every(val => !val || !val.toString().trim())
+      if (allEmpty) continue
+
       const get = (target: string) => {
         const m = mappings.find((m) => m.targetField === target)
         return m ? (row[m.csvColumn] ?? '').trim() : ''
@@ -122,6 +127,11 @@ export class CSVConnector implements IConnector {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
+
+      // Skip completely empty rows
+      const allEmpty = Object.values(row).every(val => !val || !val.toString().trim())
+      if (allEmpty) continue
+
       const get = (target: string) => {
         const m = mappings.find((m) => m.targetField === target)
         return m ? (row[m.csvColumn] ?? '').trim() : ''
@@ -133,6 +143,15 @@ export class CSVConnector implements IConnector {
       if (!customerPhone && !get('appointment.customerName')) {
         errors.push({ row: i + 2, message: 'Telefone ou nome do cliente é obrigatório' })
         continue
+      }
+
+      // Validate phone format if provided
+      if (customerPhone) {
+        const normalizedPhone = this.normalizePhone(customerPhone)
+        if (!normalizedPhone) {
+          errors.push({ row: i + 2, message: `Telefone inválido: ${customerPhone}` })
+          continue
+        }
       }
 
       if (!dateRaw) {
@@ -152,8 +171,9 @@ export class CSVConnector implements IConnector {
       const statusRaw = get('appointment.status').toLowerCase()
       const status = this.normalizeAppointmentStatus(statusRaw)
 
+      const normalizedPhone = customerPhone ? this.normalizePhone(customerPhone) : ''
       appointments.push({
-        customerPhone: customerPhone ? this.normalizePhone(customerPhone) || customerPhone : '',
+        customerPhone: normalizedPhone || customerPhone, // Fallback to original if normalization fails
         customerExternalId: get('appointment.customerId') || undefined,
         serviceName: get('appointment.serviceName') || undefined,
         professionalName: undefined,
@@ -179,6 +199,11 @@ export class CSVConnector implements IConnector {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
+
+      // Skip completely empty rows
+      const allEmpty = Object.values(row).every(val => !val || !val.toString().trim())
+      if (allEmpty) continue
+
       const get = (target: string) => {
         const m = mappings.find((m) => m.targetField === target)
         return m ? (row[m.csvColumn] ?? '').trim() : ''

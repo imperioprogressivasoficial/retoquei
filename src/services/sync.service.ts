@@ -108,6 +108,17 @@ export async function persistCustomers(
 
   for (const raw of customers) {
     try {
+      // Validate required fields
+      if (!raw.fullName || !raw.fullName.trim()) {
+        errors.push(`Linha ${raw.phone || 'desconhecida'}: Nome do cliente é obrigatório`)
+        continue
+      }
+
+      if (!raw.phone) {
+        errors.push(`Linha ${raw.fullName}: Telefone é obrigatório`)
+        continue
+      }
+
       const normalizedName = raw.fullName
         .toLowerCase()
         .normalize('NFD')
@@ -201,13 +212,23 @@ export async function persistAppointments(
 
       if (existing) continue // Skip duplicates
 
+      // Validate service if provided
+      let serviceId: string | undefined
+      if (raw.serviceName) {
+        serviceId = serviceMap.get(raw.serviceName.toLowerCase())
+        if (!serviceId) {
+          errors.push(`Serviço não encontrado para agendamento: ${raw.serviceName}`)
+          continue
+        }
+      }
+
       await prisma.appointment.create({
         data: {
           tenantId,
           customerId,
           connectorId,
           externalId: raw.externalId,
-          serviceId: raw.serviceName ? serviceMap.get(raw.serviceName.toLowerCase()) : undefined,
+          serviceId,
           scheduledAt: new Date(raw.scheduledAt),
           completedAt: raw.completedAt ? new Date(raw.completedAt) : undefined,
           status: (statusMap[raw.status] ?? 'COMPLETED') as 'COMPLETED' | 'SCHEDULED' | 'CANCELLED' | 'NO_SHOW',

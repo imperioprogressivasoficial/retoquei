@@ -21,13 +21,17 @@ export async function GET(_req: NextRequest) {
   const tenantId = await getTenantId(user.id)
   if (!tenantId) return NextResponse.json({ error: 'No workspace' }, { status: 400 })
 
-  // Ensure instance exists
-  await createInstance(tenantId)
+  // In mock mode, skip the Evolution API instance creation
+  const mockMode = process.env.WHATSAPP_MOCK_MODE === 'true'
+  if (!mockMode) {
+    // Ensure instance exists in real mode only
+    await createInstance(tenantId)
+  }
 
   const qr = await getQRCode(tenantId)
   if (!qr) {
     return NextResponse.json(
-      { error: 'QR code não disponível. Configure EVOLUTION_API_URL e EVOLUTION_API_KEY.' },
+      { error: 'QR code não disponível. Configure EVOLUTION_API_URL e EVOLUTION_API_KEY ou defina WHATSAPP_MOCK_MODE=true.' },
       { status: 503 }
     )
   }

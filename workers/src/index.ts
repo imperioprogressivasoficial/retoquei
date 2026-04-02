@@ -6,6 +6,7 @@ import { processCustomerRecompute } from './processors/customer-recompute.proces
 import { processSegmentRefresh } from './processors/segment-refresh.processor'
 import { processMessageSend } from './processors/message-send.processor'
 import { processWebhookEvent } from './processors/webhook-process.processor'
+import { processFlowExecutor } from './processors/flow-executor.processor'
 import { setupScheduler, teardownScheduler } from './scheduler'
 
 // ---------------------------------------------------------------------------
@@ -58,6 +59,14 @@ workers.push(
   new Worker('webhook-process', processWebhookEvent, {
     connection: redis,
     concurrency: 10,
+  }),
+)
+
+// ── Flow Executor ─────────────────────────────────────────────────────────
+workers.push(
+  new Worker('flow-executor', processFlowExecutor, {
+    connection: redis,
+    concurrency: 5,
   }),
 )
 

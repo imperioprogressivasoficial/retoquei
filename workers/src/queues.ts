@@ -68,6 +68,12 @@ export const retryFailedMessagesQueue = new Queue('retry-failed-messages', {
   defaultJobOptions,
 });
 
+/** Executes automation flows based on triggers */
+export const flowExecutorQueue = new Queue('flow-executor', {
+  ...connectionOpts,
+  defaultJobOptions,
+});
+
 // ---------------------------------------------------------------------------
 // Typed job data interfaces (shared across queues & processors)
 // ---------------------------------------------------------------------------
@@ -104,4 +110,12 @@ export interface CampaignScheduleJobData {
 
 export interface RetryFailedMessagesJobData {
   tenantId?: string; // omit to retry across all tenants
+}
+
+export interface FlowExecutorJobData {
+  type: 'trigger_inactive' | 'trigger_birthday' | 'trigger_segment' | 'trigger_post_service' | 'execute_manual';
+  tenantId: string;
+  customerId?: string;
+  appointmentId?: string;
+  segmentId?: string;
 }

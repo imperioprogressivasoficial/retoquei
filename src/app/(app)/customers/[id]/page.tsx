@@ -3,6 +3,8 @@ import { redirect, notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { TopBar } from '@/components/layout/TopBar'
 import { LifecycleBadge } from '@/components/customers/LifecycleBadge'
+import { CustomerEditForm } from '@/components/customers/CustomerEditForm'
+import { RiskAssessment } from '@/components/customers/RiskAssessment'
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Phone, Mail, Calendar, DollarSign, TrendingUp, Clock } from 'lucide-react'
@@ -61,7 +63,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
         {/* Header */}
         <div className="rounded-xl border border-border bg-[#1E1E1E] p-6">
           <div className="flex items-start justify-between">
-            <div>
+            <div className="flex-1">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-lg">
                   {customer.fullName.charAt(0).toUpperCase()}
@@ -74,15 +76,39 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
                 </div>
               </div>
             </div>
-            {customer.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {customer.tags.map((tag: string) => (
-                  <span key={tag} className="rounded-full bg-white/5 border border-border px-2 py-0.5 text-xs text-muted-foreground">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-col items-end gap-3">
+              {customer.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 justify-end">
+                  {customer.tags.map((tag: string) => (
+                    <span key={tag} className="rounded-full bg-white/5 border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <CustomerEditForm
+                customer={{
+                  id: customer.id,
+                  fullName: customer.fullName,
+                  email: customer.email,
+                  phoneE164: customer.phoneE164,
+                  birthdate: customer.birthdate?.toISOString(),
+                  lifecycleStage: customer.lifecycleStage,
+                  riskLevel: customer.riskLevel,
+                  notes: customer.notes,
+                  tags: customer.tags,
+                }}
+                onSave={async (data) => {
+                  const response = await fetch(`/api/customers/${customer.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                  })
+                  if (!response.ok) throw new Error('Erro ao salvar')
+                  window.location.reload()
+                }}
+              />
+            </div>
           </div>
 
           <div className="mt-5 flex flex-wrap gap-6 text-sm">
@@ -126,6 +152,18 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
             </div>
           </div>
         )}
+
+        {/* Risk Assessment */}
+        <div className="rounded-xl border border-border bg-[#1E1E1E] p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Avaliação de Risco</h2>
+          <RiskAssessment
+            customer={{
+              riskLevel: customer.riskLevel,
+              lifecycleStage: customer.lifecycleStage,
+              metrics: customer.metrics || undefined,
+            }}
+          />
+        </div>
 
         {/* Appointment history + segments in two columns */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

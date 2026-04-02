@@ -6,15 +6,36 @@
  * Env vars needed:
  *   EVOLUTION_API_URL=https://your-evolution-api.com
  *   EVOLUTION_API_KEY=your-global-api-key
+ *
+ * Mock Mode:
+ * When WHATSAPP_MOCK_MODE=true, returns fake QR codes for testing.
  */
 
 const BASE_URL = process.env.EVOLUTION_API_URL ?? ''
 const API_KEY = process.env.EVOLUTION_API_KEY ?? ''
+const MOCK_MODE = process.env.WHATSAPP_MOCK_MODE === 'true'
 
 function headers() {
   return {
     'Content-Type': 'application/json',
     apikey: API_KEY,
+  }
+}
+
+/**
+ * Generate a mock QR code for testing in mock mode.
+ * Returns a small 1x1 PNG in base64 format with mock data.
+ */
+function generateMockQRCode(tenantId: string): QRCodeResponse {
+  // A minimal valid PNG (1x1 transparent pixel) in base64
+  const minimalPNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+
+  // Generate a mock code string based on tenant
+  const mockCode = `mock-qr-${tenantId.slice(0, 8)}-${Date.now()}`
+
+  return {
+    base64: `data:image/png;base64,${minimalPNG}`,
+    code: mockCode,
   }
 }
 
@@ -51,8 +72,14 @@ export async function createInstance(tenantId: string): Promise<void> {
 /**
  * Get the current QR code for an instance.
  * Returns base64 image and raw code string.
+ * In mock mode, returns a fake QR code for testing.
  */
 export async function getQRCode(tenantId: string): Promise<QRCodeResponse | null> {
+  // In mock mode, return a mock QR code
+  if (MOCK_MODE) {
+    return generateMockQRCode(tenantId)
+  }
+
   if (!BASE_URL || !API_KEY) return null
 
   const instanceName = `retoquei-${tenantId.slice(0, 8)}`
@@ -75,9 +102,18 @@ export async function getQRCode(tenantId: string): Promise<QRCodeResponse | null
 
 /**
  * Get the connection status of an instance.
+ * In mock mode, returns a connecting status.
  */
 export async function getConnectionStatus(tenantId: string): Promise<ConnectionStatus> {
   const instanceName = `retoquei-${tenantId.slice(0, 8)}`
+
+  // In mock mode, return a mock connecting status
+  if (MOCK_MODE) {
+    return {
+      state: 'connecting',
+      instance: instanceName,
+    }
+  }
 
   if (!BASE_URL || !API_KEY) {
     return { state: 'close', instance: instanceName }

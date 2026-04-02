@@ -21,6 +21,17 @@ export async function GET(_req: NextRequest) {
   const tenantId = await getTenantId(user.id)
   if (!tenantId) return NextResponse.json({ error: 'No workspace' }, { status: 400 })
 
+  // In mock mode, always return a mock status
+  const mockMode = process.env.WHATSAPP_MOCK_MODE === 'true'
+  if (mockMode) {
+    return NextResponse.json({
+      state: 'connecting',
+      instance: `retoquei-${tenantId.slice(0, 8)}`,
+      configured: true,
+      mockMode: true,
+    })
+  }
+
   const configured = isEvolutionApiConfigured()
   if (!configured) {
     return NextResponse.json({

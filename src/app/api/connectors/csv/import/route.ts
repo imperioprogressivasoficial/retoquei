@@ -8,6 +8,7 @@ import { customerAnalyticsService } from '@/services/customer-analytics.service'
 import { segmentationService } from '@/services/segmentation.service'
 import { logAuditEvent, AuditAction } from '@/services/audit.service'
 import { z } from 'zod'
+import type { ColumnMappingTarget } from '@/types/connector.types'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,12 +21,42 @@ function getAdminClient() {
   return createAdmin(url, key, { auth: { persistSession: false } })
 }
 
+const VALID_COLUMN_TARGETS = z.enum([
+  // Customer fields
+  'customer.name',
+  'customer.phone',
+  'customer.email',
+  'customer.birthdate',
+  'customer.notes',
+  'customer.externalId',
+  'customer.tags',
+  // Appointment fields
+  'appointment.customerId',
+  'appointment.customerPhone',
+  'appointment.customerName',
+  'appointment.date',
+  'appointment.time',
+  'appointment.datetime',
+  'appointment.serviceName',
+  'appointment.servicePrice',
+  'appointment.totalValue',
+  'appointment.status',
+  'appointment.notes',
+  'appointment.externalId',
+  // Service fields
+  'service.name',
+  'service.category',
+  'service.price',
+  'service.duration',
+  'service.externalId',
+])
+
 const schema = z.object({
   connectorId: z.string(),
   importType: z.enum(['customers', 'appointments', 'services']),
   rows: z.array(z.record(z.string())),
   columnMappings: z.array(z.object({
-    targetField: z.string(),
+    targetField: VALID_COLUMN_TARGETS,
     csvColumn: z.string(),
     required: z.boolean().optional(),
   })),

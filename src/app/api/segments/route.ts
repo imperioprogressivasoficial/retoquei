@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { computeSegmentMembers, type SegmentRule } from '@/lib/segments/engine'
 
-const schema = z.object({
+const createSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
   lifecycleStages: z.array(z.string()).optional(),
+  rules: z.any().optional(),
+})
+
+const updateSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().optional(),
+  lifecycleStages: z.array(z.string()).optional(),
+  rules: z.any().optional(),
+  isActive: z.boolean().optional(),
 })
 
 async function getTenantId(supabaseUserId: string) {
@@ -15,6 +25,40 @@ async function getTenantId(supabaseUserId: string) {
     include: { ownedTenants: { take: 1 } },
   })
   return dbUser?.ownedTenants[0]?.tenantId ?? null
+}
+
+function buildRules(lifecycleStages?: string[], customRules?: SegmentRule): SegmentRule {
+  if (customRules) {
+    return customRules
+  }
+
+  if (lifecycleStages?.length) {
+    return {
+      and: lifecycleStages.map((stage) => ({
+        field: 'lifecycleStage',
+        op: 'eq' as const,
+        value: stage,
+      })),
+    } as any
+  }
+
+  return {} as SegmentRule
+}
+
+export async function GET(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const tenantId = await getTenantId(user.id)
+  if (!tenantId) return NextResponse.json({ error: 'No workspace' }, { status: 400 })
+
+  const segments = await prisma.segment.findMany({
+    where: { tenantId },
+    orderBy: [{ isSystem: 'desc' }, { customerCount: 'desc' }],
+  })
+
+  return NextResponse.json(segments)
 }
 
 export async function POST(req: NextRequest) {
@@ -26,24 +70,13 @@ export async function POST(req: NextRequest) {
   if (!tenantId) return NextResponse.json({ error: 'No workspace' }, { status: 400 })
 
   const body = await req.json()
-  const result = schema.safeParse(body)
+  const result = createSchema.safeParse(body)
   if (!result.success) return NextResponse.json({ error: result.error.errors[0].message }, { status: 400 })
 
-  const rules = result.data.lifecycleStages?.length
-    ? { and: [{ field: 'lifecycle_stage', op: 'in', value: result.data.lifecycleStages }] }
-    : {}
+  const rules = buildRules(result.data.lifecycleStages, result.data.rules)
 
-  // Compute initial customer count if rules defined
-  let customerCount = 0
-  if (result.data.lifecycleStages?.length) {
-    customerCount = await prisma.customer.count({
-      where: {
-        tenantId,
-        deletedAt: null,
-        lifecycleStage: { in: result.data.lifecycleStages as any[] },
-      },
-    })
-  }
+  // Compute initial customer count
+  const customerCount = Object.keys(rules).length > 0 ? await computeSegmentMembers(tenantId, rules) : 0
 
   const segment = await prisma.segment.create({
     data: {
@@ -51,7 +84,7 @@ export async function POST(req: NextRequest) {
       name: result.data.name,
       description: result.data.description,
       type: 'CUSTOM',
-      rulesJson: rules as object,
+      rulesJson: Object.keys(rules).length > 0 ? (rules as object) : {},
       customerCount,
       isActive: true,
       isSystem: false,

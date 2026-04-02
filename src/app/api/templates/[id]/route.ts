@@ -6,7 +6,7 @@ import { z } from 'zod'
 const schema = z.object({
   name: z.string().min(1).max(100).optional(),
   body: z.string().min(1).max(2000).optional(),
-  category: z.string().optional(),
+  category: z.enum(['POST_SERVICE', 'RECOVERY', 'BIRTHDAY', 'PROMOTIONAL', 'CUSTOM']).optional(),
 })
 
 async function getTenantId(supabaseUserId: string) {
@@ -15,6 +15,21 @@ async function getTenantId(supabaseUserId: string) {
     include: { ownedTenants: { take: 1 } },
   })
   return dbUser?.ownedTenants[0]?.tenantId ?? null
+}
+
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const tenantId = await getTenantId(user.id)
+
+  const template = await prisma.messageTemplate.findFirst({
+    where: tenantId ? { id: params.id, OR: [{ tenantId }, { isSystem: true }] } : { id: params.id, isSystem: true },
+  })
+  if (!template) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  return NextResponse.json(template)
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {

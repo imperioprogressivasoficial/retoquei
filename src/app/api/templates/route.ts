@@ -6,7 +6,7 @@ import { z } from 'zod'
 const schema = z.object({
   name: z.string().min(1).max(100),
   body: z.string().min(1).max(2000),
-  category: z.string().optional(),
+  category: z.enum(['POST_SERVICE', 'RECOVERY', 'BIRTHDAY', 'PROMOTIONAL', 'CUSTOM']).optional(),
 })
 
 async function getTenantId(supabaseUserId: string) {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       tenantId,
       name: result.data.name,
       body: result.data.body,
-      category: result.data.category ?? 'GENERAL',
+      category: result.data.category ?? 'CUSTOM',
       variables,
       isSystem: false,
     },

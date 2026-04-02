@@ -12,13 +12,21 @@ export async function GET(req: NextRequest) {
   const token = url.searchParams.get('hub.verify_token')
   const challenge = url.searchParams.get('hub.challenge')
 
+  console.log('[WhatsApp Webhook] Verification attempt', {
+    mode,
+    hasToken: !!token,
+    hasChallenge: !!challenge,
+  })
+
   const provider = getMessagingProvider()
   const valid = provider.validateWebhookToken(token ?? '', challenge ?? '')
 
   if (valid && mode === 'subscribe') {
+    console.log('[WhatsApp Webhook] ✅ Verification successful')
     return new Response(valid, { status: 200 })
   }
 
+  console.log('[WhatsApp Webhook] ❌ Verification failed')
   return new Response('Forbidden', { status: 403 })
 }
 
@@ -29,9 +37,15 @@ export async function POST(req: NextRequest) {
   let payload: unknown
   try {
     payload = JSON.parse(rawBody)
-  } catch {
+  } catch (err) {
+    console.error('[WhatsApp webhook] Invalid JSON:', err)
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
+
+  console.log('[WhatsApp Webhook] Received event', {
+    idempotencyKey,
+    payloadType: typeof payload === 'object' ? Object.keys(payload as object)[0] : 'unknown',
+  })
 
   // Store as webhook event for async processing
   try {
@@ -53,7 +67,12 @@ export async function POST(req: NextRequest) {
 
   // Also process delivery status updates synchronously (fast path)
   const provider = getMessagingProvider()
-  await provider.processInboundWebhook(payload)
+  const result = await provider.processInboundWebhook(payload)
+
+  console.log('[WhatsApp Webhook] ✅ Processed', {
+    eventCount: result.events.length,
+    errorCount: result.errors.length,
+  })
 
   return NextResponse.json({ status: 'ok' })
 }

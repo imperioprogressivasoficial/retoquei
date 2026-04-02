@@ -7,7 +7,7 @@ export default async function AdminTenantsPage() {
   const tenants = await prisma.tenant.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      _count: { select: { customers: true, bookingConnectors: true } },
+      _count: { select: { customers: true, connectors: true } },
       subscription: true,
     },
   })
@@ -39,7 +39,7 @@ export default async function AdminTenantsPage() {
                     <span className="text-xs font-medium text-gold">{t.plan}</span>
                   </td>
                   <td className="px-4 py-3 text-white text-sm">{t._count.customers}</td>
-                  <td className="px-4 py-3 text-white text-sm">{t._count.bookingConnectors}</td>
+                  <td className="px-4 py-3 text-white text-sm">{t._count.connectors}</td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">
                     {format(t.createdAt, 'dd/MM/yyyy', { locale: ptBR })}
                   </td>

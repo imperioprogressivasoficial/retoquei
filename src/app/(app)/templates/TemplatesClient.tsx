@@ -46,7 +46,7 @@ export function TemplatesClient({ initialTemplates }: Props) {
 
   // Test form state
   const [testPhone, setTestPhone] = useState('')
-  const [testResult, setTestResult] = useState<{ rendered?: string; error?: string } | null>(null)
+  const [testResult, setTestResult] = useState<{ rendered?: string; error?: string; charCount?: number; warnings?: string[] } | null>(null)
 
   // AI generation state
   const [showAI, setShowAI] = useState(false)
@@ -395,9 +395,21 @@ export function TemplatesClient({ initialTemplates }: Props) {
                     />
                   </div>
                   {testResult?.rendered && (
-                    <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-3">
-                      <p className="text-xs text-green-400 font-medium mb-1.5">Mensagem enviada (modo mock):</p>
-                      <p className="text-xs text-white font-mono whitespace-pre-wrap">{testResult.rendered}</p>
+                    <div className={`rounded-lg border p-3 ${testResult.warnings?.length ? 'border-amber-500/20 bg-amber-500/5' : 'border-green-500/20 bg-green-500/5'}`}>
+                      <p className={`text-xs font-medium mb-1.5 ${testResult.warnings?.length ? 'text-amber-400' : 'text-green-400'}`}>
+                        {testResult.warnings?.length ? 'Avisos:' : 'Mensagem enviada (modo mock):'}
+                      </p>
+                      {testResult.warnings?.length ? (
+                        <div className="space-y-2 mb-3">
+                          {testResult.warnings.map((w, i) => (
+                            <p key={i} className="text-xs text-amber-300">• {w}</p>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="mt-2 pt-2 border-t border-white/10">
+                        <p className="text-xs text-muted-foreground mb-1">Contagem: {testResult.charCount} caracteres</p>
+                        <p className="text-xs text-white font-mono whitespace-pre-wrap">{testResult.rendered}</p>
+                      </div>
                     </div>
                   )}
                   {testResult?.error && <p className="text-xs text-red-400">{testResult.error}</p>}
