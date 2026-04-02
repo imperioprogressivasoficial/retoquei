@@ -39,19 +39,11 @@ export default function LoginPage() {
     resolver: zodResolver(magicLinkSchema),
   })
 
-  const isDevMode = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
 
   async function onPasswordSubmit(data: LoginForm) {
     setLoading(true)
     try {
-      if (isDevMode) {
-        await new Promise((r) => setTimeout(r, 600))
-        document.cookie = `dev_user=${encodeURIComponent(JSON.stringify({ id: 'dev-user', email: data.email, user_metadata: { full_name: 'Dev User', has_connector: true, onboarding_complete: true } }))};path=/`
-        toast.success('Modo dev: login realizado!')
-        router.push('/dashboard')
-        return
       }
-      const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       })

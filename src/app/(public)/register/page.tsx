@@ -47,21 +47,11 @@ export default function RegisterPage() {
 
   const password = form.watch('password') || ''
 
-  const isDevMode = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
 
   async function onSubmit(data: RegisterForm) {
     setLoading(true)
     try {
-      // Dev mode bypass: skip Supabase when using placeholder credentials
-      if (isDevMode) {
-        await new Promise((r) => setTimeout(r, 600))
-        // Set a dev session cookie so the middleware allows access to protected routes
-        document.cookie = `dev_user=${encodeURIComponent(JSON.stringify({ id: 'dev-user', email: data.email, user_metadata: { full_name: data.name, has_connector: false } }))};path=/`
-        toast.success('Modo dev: conta criada! Redirecionando...')
-        router.push('/onboarding/1')
-        return
       }
-
       const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,

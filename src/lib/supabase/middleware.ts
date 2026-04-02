@@ -10,23 +10,12 @@ import { type NextRequest, NextResponse } from 'next/server'
  * Usage:
  *   const { response, user } = await updateSession(request)
  */
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
 
 export async function updateSession(request: NextRequest) {
   // Start with a plain pass-through response so we can mutate cookies on it.
   let supabaseResponse = NextResponse.next({ request })
 
-  // Dev mode: skip Supabase entirely when using placeholder credentials
-  if (IS_DEV_MODE) {
-    try {
-      const raw = request.cookies.get('dev_user')?.value
-      const devUser = raw ? JSON.parse(decodeURIComponent(raw)) : null
-      return { response: supabaseResponse, user: devUser, supabase: null }
-    } catch {
-      return { response: supabaseResponse, user: null, supabase: null }
-    }
-  }
-
+  // Always use Supabase for authentication (no dev mode bypass)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
