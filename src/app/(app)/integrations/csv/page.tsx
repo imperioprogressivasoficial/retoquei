@@ -52,7 +52,7 @@ export default async function CSVIntegrationPage() {
     <div>
       <TopBar title="Importação CSV" />
       <div className="p-6 max-w-2xl mx-auto space-y-6">
-        <Link href="/integrations" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors">
+        <Link href="/app/integrations" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-white transition-colors">
           <ChevronLeft className="h-4 w-4" /> Voltar para Integrações
         </Link>
 

@@ -372,15 +372,38 @@ function Step5({ onNext }: { onNext: () => void }) {
 
 function Step6({ onFinish }: { onFinish: () => void }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleFinish() {
     setLoading(true)
-    await fetch('/api/users/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ onboardingComplete: true }),
-    }).catch(() => {})
-    onFinish()
+    setError(null)
+    try {
+      // Create tenant first
+      const tenantRes = await fetch('/api/tenants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Meu Salão',
+          slug: `salon-${Date.now()}`
+        }),
+      })
+
+      if (!tenantRes.ok) {
+        throw new Error('Falha ao criar espaço')
+      }
+
+      // Then mark onboarding as complete
+      await fetch('/api/users/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ onboardingComplete: true }),
+      }).catch(() => {})
+
+      onFinish()
+    } catch (err) {
+      setError((err as Error).message)
+      setLoading(false)
+    }
   }
 
   return (
@@ -394,6 +417,7 @@ function Step6({ onFinish }: { onFinish: () => void }) {
           Seu Retoquei está configurado. Acesse o dashboard e comece a entender o comportamento dos seus clientes.
         </p>
       </div>
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <button
         onClick={handleFinish}
         disabled={loading}
