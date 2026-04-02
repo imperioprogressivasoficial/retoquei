@@ -125,6 +125,6 @@ export async function DELETE(
     )
   }
 
-  await prisma.campaign.delete({ where: { id } })
+  await prisma.campaign.delete({ where: { id, tenantId } })
   return NextResponse.json({ ok: true })
 }

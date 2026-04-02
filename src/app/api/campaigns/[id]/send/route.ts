@@ -102,7 +102,7 @@ export async function POST(
     return NextResponse.json({ error: 'Campaign already sent' }, { status: 400 })
   }
 
-  await prisma.campaign.update({ where: { id }, data: { status: 'RUNNING', startedAt: new Date() } })
+  await prisma.campaign.update({ where: { id, tenantId }, data: { status: 'RUNNING', startedAt: new Date() } })
 
   // Get customers
   let customers: {

@@ -54,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     updateData.variables = [...new Set((result.data.body.match(/\{\{[^}]+\}\}/g) ?? []))]
   }
 
-  const updated = await prisma.messageTemplate.update({ where: { id: params.id }, data: updateData })
+  const updated = await prisma.messageTemplate.update({ where: { id: params.id, tenantId }, data: updateData })
   return NextResponse.json(updated)
 }
 
@@ -71,6 +71,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   })
   if (!template) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  await prisma.messageTemplate.delete({ where: { id: params.id } })
+  await prisma.messageTemplate.delete({ where: { id: params.id, tenantId } })
   return NextResponse.json({ ok: true })
 }
