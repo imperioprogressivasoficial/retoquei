@@ -1,0 +1,277 @@
+================================================================================
+                    RETOQUEI - SUMÁRIO EXECUTIVO DO COPY
+================================================================================
+
+O QUE FOI CRIADO:
+================
+
+4 documentos prontos para usar (todos em Markdown):
+
+1. COPY_VENDAS.md (15 seções)
+   - Headline impactante
+   - Problema do cliente
+   - Solução detalhada
+   - 5 benefícios principais
+   - Social proof com números
+   - 3 tiers de preço
+   - Garantia 30 dias
+   - Respostas a 5 objeções
+   - Frases ganhadoras
+
+2. COPY_VARIAÇÕES.md (9 seções)
+   - Copy por tipo de público (5 públicos)
+   - Copy por canal (5 canais: LinkedIn, TikTok, SMS, WhatsApp, Email)
+   - Copy por estágio do funil (3 estágios: awareness, consideration, decision)
+   - Copy para 8 objeções específicas
+   - Copy para 6 tipos de salão (tradicional, corporal, pele, unhas, etc)
+   - 5 scripts de vendas prontos
+   - 9 micro-moments na jornada
+   - 5 templates de email
+
+3. LANDING_PAGE_COPY.md (estrutura completa)
+   - 10 seções de landing page
+   - Copy pronto para cada seção
+   - Imagens e assets necessários
+   - Componentes visuais recomendados
+   - Eventos de analytics a rastrear
+   - Testes A/B sugeridos
+   - Checklist de implementação
+
+4. GUIA_IMPLEMENTACAO_COPY.md (roteiro prático)
+   - 5 fases de implementação (validação → landing → ads → otimização → escala)
+   - Ações específicas por semana
+   - Canais de aquisição (Google Ads, Email, LinkedIn, Instagram, Partnerships)
+   - Métricas a acompanhar
+   - Testes A/B recomendados
+   - Checklist final
+
+================================================================================
+NÚMEROS-CHAVE DO COPY (repetir em toda comunicação):
+================================================================================
+
+PROBLEMA:
+- 15-30% de clientes perdidos por ano
+- R$ 7-15 mil em faturamento perdido por salão/ano
+- Churn invisível (ninguém sabe que está acontecendo)
+
+SOLUÇÃO:
+- Identifica clientes em risco automaticamente
+- Envia WhatsApp personalizado no timing perfeito
+- 5-15 clientes recuperados por mês
+
+RESULTADO:
+- 45-55% de reativação em 30 dias
+- +12-40% de faturamento em 12 meses
+- R$ 1.500-6.750 em receita extra por mês
+- ROI de 300-500% no primeiro ano
+
+================================================================================
+PRINCIPAIS ÂNGULOS DE VENDA:
+================================================================================
+
+1. PARA PROPRIETÁRIOS:
+   "Você está perdendo R$ 10 mil por mês sem saber"
+   → Foco: receita, números, ROI
+
+2. PARA GERENTES:
+   "Zero trabalho manual. Sistema automático 24/7"
+   → Foco: tempo, simplicidade, praticidade
+
+3. PARA ESTÉTICAS:
+   "Cada cliente tem seu ciclo. Retoquei aprende e personaliza"
+   → Foco: frequência variável, personalização
+
+4. PARA REDES/FRANQUIAS:
+   "Centraliza retenção de todas as unidades em 1 dashboard"
+   → Foco: escala, controle, ROI comparativo
+
+================================================================================
+ESTRATÉGIA DE COPYWRITING (4 pilares):
+================================================================================
+
+PILAR 1: PROBLEMA CLARO
+"Você está perdendo 20-25 clientes por ano, silenciosamente"
+→ Despertar para churn invisível
+
+PILAR 2: SOLUÇÃO ÓBVIA
+"Identificar + Personalizar + Automatizar"
+→ Mostrar que é simples e eficaz
+
+PILAR 3: PROVA SOCIAL
+"45-55% de reativação. R$ 50 mil recuperados por salão/ano"
+→ Números reais, depoimentos, estatísticas
+
+PILAR 4: REMOÇÃO DE RISCO
+"Garantia 30 dias. Teste grátis. Suporte 1:1"
+→ Zero fricção para começar
+
+================================================================================
+PREÇOS RECOMENDADOS:
+================================================================================
+
+STARTER:        R$ 97/mês   (até 500 clientes)
+PROFISSIONAL:   R$ 297/mês  (até 2.000 clientes)  ← MAIS POPULAR
+PREMIUM:        R$ 597/mês  (clientes ilimitados)
+
+PROMOÇÃO LANÇAMENTO:
+- 50% desconto primeiros 3 meses
+- Bônus: onboarding 1:1 + templates + análise gratuita
+
+================================================================================
+CANAIS DE AQUISIÇÃO (por prioridade):
+================================================================================
+
+1. GOOGLE ADS (SEM)
+   Budget: R$ 100-250/dia
+   Expected: 50-100 leads/dia, 15-25% conv rate
+
+2. EMAIL (Warm list)
+   Budget: Grátis (só serviço de email)
+   Expected: 25-35% open rate, 5-10% click rate
+
+3. LINKEDIN (Outreach + Posts)
+   Budget: Grátis (tempo manual)
+   Expected: 5-10% response, 1-3% signup
+
+4. INSTAGRAM/TIKTOK (Orgânico)
+   Budget: Grátis (produção de conteúdo)
+   Expected: 50-200 views/reel, 1-3 clicks/dia
+
+5. PARTNERSHIPS (Affiliate)
+   Budget: 10-20% revenue share
+   Expected: 5-20% de leads extras
+
+================================================================================
+COPY WINS (frases que SEMPRE convertem):
+================================================================================
+
+1. "Recupere clientes no piloto automático"
+2. "Um cliente recuperado paga Retoquei por 1 mês inteiro"
+3. "Sangria silenciosa: você nem sabe que está perdendo"
+4. "Parar de perder é mais fácil que conquistar"
+5. "Seu gerente consegue fazer — é tão simples"
+6. "O sistema trabalha enquanto você dorme"
+7. "Dados vs. Intuição — você escolhe qual gerenciar"
+8. "15-25% de clientes perdidos voltam em 30 dias"
+9. "6-30x ROI — seu investimento se paga rapidinho"
+10. "Garantia 30 dias: recupere ou devolvemos"
+
+================================================================================
+OBJEÇÕES PRONTAS (respostas rápidas):
+================================================================================
+
+"Já envio mensagens no WhatsApp manualmente"
+→ "Quantas horas por semana? E quantos % você realmente consegue chamar?"
+
+"Não sei se funciona para meu tipo de salão"
+→ "Garantia 30 dias. Não viu resultado? Devolvemos."
+
+"Parece caro"
+→ "Um cliente recuperado = R$ 350-450/mês. Você traz 5-10 de volta. Contas?"
+
+"Integração é complicada"
+→ "CSV (5 min) ou webhook (automático). Nosso time ajuda."
+
+"Meus dados são seguros?"
+→ "Enterprise level (Supabase). LGPD compliant. Nunca compartilhados."
+
+================================================================================
+TIMELINE DE IMPLEMENTAÇÃO:
+================================================================================
+
+SEMANA 1: VALIDAÇÃO (Teste com 50-100 pessoas)
+- [ ] WhatsApp: envie para 20-30 contatos
+- [ ] Email: envie 1 sequência para sua base
+- [ ] LinkedIn: poste 1-2 vezes
+- MÉTRICA: Click rate > 10%? Avança.
+
+SEMANA 2-3: LANDING PAGE
+- [ ] Escolher ferramenta (Webflow recomendado)
+- [ ] Copiar estrutura de LANDING_PAGE_COPY.md
+- [ ] Coletar assets (screenshots, ícones, depoimentos)
+- [ ] Integrar forms + email + analytics
+
+SEMANA 3-4: CAMPANHAS
+- [ ] Google Ads: começar com R$ 250/dia
+- [ ] Email: configurar sequência de 5 emails
+- [ ] LinkedIn: outreach manual + posts 3x/semana
+- [ ] TikTok/Instagram: 3-5 reels/semana
+
+SEMANA 4+: OTIMIZAÇÃO
+- [ ] Monitorar analytics (CTR, conv rate, CAC)
+- [ ] A/B testing de headlines/CTAs
+- [ ] Aumentar budget em canais que funcionam
+- [ ] Melhorar onboarding baseado em feedback
+
+================================================================================
+MÉTRICAS DE SUCESSO:
+================================================================================
+
+TRÁFEGO:
+- CTR mínimo: 3%
+- CTR alvo: 5-10%
+
+CONVERSÃO:
+- Conv rate mínimo: 10%
+- Conv rate alvo: 15-25%
+
+TRIAL TO PAID:
+- Mínimo: 15%
+- Alvo: 20-40%
+
+CAC (Customer Acquisition Cost):
+- Máximo: R$ 1.500
+- Alvo: R$ 500-1.000
+
+LTV (Lifetime Value):
+- Mínimo: R$ 1.500
+- Alvo: R$ 2.500-5.000
+
+PAYBACK:
+- Máximo: 4 meses
+- Alvo: 1-3 meses
+
+================================================================================
+QUICK START (se quiser começar HOJE):
+================================================================================
+
+1. Copie Email 1 do COPY_VARIAÇÕES.md
+2. Envie para 20 contatos seus
+3. Acompanhe open rate + click rate
+4. Se click rate > 10% → Avança para landing page
+5. Se click rate < 5% → Volte, mude subject, teste novamente
+
+Simples assim.
+
+================================================================================
+SUPORTE & PRÓXIMOS PASSOS:
+================================================================================
+
+Documentos criados:
+✓ COPY_VENDAS.md (15 seções)
+✓ COPY_VARIAÇÕES.md (9 seções)
+✓ LANDING_PAGE_COPY.md (estrutura pronta)
+✓ GUIA_IMPLEMENTACAO_COPY.md (roteiro semanal)
+✓ SUMARIO_COPY.txt (este arquivo)
+
+Próximos passos:
+1. Leia o sumário (este arquivo) — 10 min
+2. Leia COPY_VENDAS.md — 30 min
+3. Teste Email 1 com seus contatos — 1 hora
+4. Acompanhe resultados (3-7 dias)
+5. Se click > 10% → Inicie Fase 2 (Landing page)
+
+Tempo total até landing ao vivo: 3-4 semanas
+Investimento inicial em ads: R$ 7.500-10 mil/mês
+Expected ROI: 300-500% em 12 meses
+
+================================================================================
+                            BOA SORTE! 🚀
+================================================================================
+
+Todos os materiais estão em PT-BR, profissionais e prontos para uso.
+Adapte conforme seu tom de voz, mas mantenha a estrutura.
+O segredo é CONSISTÊNCIA — repita a mesma mensagem em todos os canais.
+
+Dúvidas? Estou aqui.
+

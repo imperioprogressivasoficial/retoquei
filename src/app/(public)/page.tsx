@@ -1,457 +1,317 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
-import { useState, useEffect, useRef } from 'react'
-import {
-  ArrowRight, BarChart3, Bot, CheckCircle, ChevronDown,
-  MessageSquare, Sparkles, TrendingUp, Users, Zap,
-  AlertTriangle, Star, Phone, CalendarCheck, Menu, X,
-  Wifi, Clock, RefreshCw, Target, Award, ChevronRight,
-  Play, Lock, GitBranch, Smartphone, Eye, Zap as ZapIcon,
-} from 'lucide-react'
-import { AnimatedSection } from '@/components/ui/AnimatedSection'
+import { useState, useEffect } from 'react'
+import { Menu, X, ArrowRight, Check, Star, BarChart3, Zap, Shield } from 'lucide-react'
 
-// Animations
-const G = () => (
-  <style>{`
-    @keyframes float-y { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    @keyframes gradient-shift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-    @keyframes slide-in { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes pulse-scale { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-    @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
-
-    .hero-gradient { background: linear-gradient(135deg, #C9A14A 0%, #E8C06A 50%, #A07D3A 100%); background-size: 200% 200%; }
-    .card-hover { transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s; }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(201,161,74,0.2); border-color: rgba(201,161,74,0.5); }
-
-    .nav-link { position: relative; color: rgba(255,255,255,0.7); transition: color 0.3s; }
-    .nav-link::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: #C9A14A; transition: width 0.3s; }
-    .nav-link:hover { color: #C9A14A; }
-    .nav-link:hover::after { width: 100%; }
-
-    .btn-gold { background: linear-gradient(135deg, #C9A14A, #E8C06A); color: #1a1a1a; font-weight: 600; transition: all 0.3s; box-shadow: 0 8px 20px rgba(201,161,74,0.3); }
-    .btn-gold:hover { box-shadow: 0 12px 30px rgba(201,161,74,0.5); transform: translateY(-2px); }
-
-    .btn-outline { border: 2px solid #C9A14A; color: #C9A14A; transition: all 0.3s; }
-    .btn-outline:hover { background: rgba(201,161,74,0.1); }
-
-    .gradient-text { background: linear-gradient(135deg, #C9A14A, #E8C06A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-    .feature-icon { background: linear-gradient(135deg, rgba(201,161,74,0.2), rgba(232,192,106,0.1)); border: 1px solid rgba(201,161,74,0.3); }
-
-    @media(max-width:768px) { .hide-mobile { display: none !important; } }
-  `}</style>
-)
-
-function FloatingParticles() {
-  return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 20 }).map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full bg-[#C9A14A] opacity-5"
-          style={{
-            width: Math.random() * 100 + 50 + 'px',
-            height: Math.random() * 100 + 50 + 'px',
-            left: Math.random() * 100 + '%',
-            top: Math.random() * 100 + '%',
-            animation: `float-y ${15 + Math.random() * 10}s ease-in-out infinite`,
-            animationDelay: Math.random() * 5 + 's',
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-function Navbar() {
+export default function LandingPage() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
+    const handleScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5' : 'bg-transparent'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#C9A14A] to-[#E8C06A] flex items-center justify-center font-bold text-black">R</div>
-          <span className="text-xl font-bold hidden sm:block">Retoquei</span>
-        </Link>
+    <div className="min-h-screen bg-black text-white overflow-hidden">
+      <style>{`
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
 
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#beneficios" className="nav-link text-sm">Benefícios</a>
-          <a href="#recursos" className="nav-link text-sm">Recursos</a>
-          <a href="#preco" className="nav-link text-sm">Preços</a>
-          <a href="#depoimentos" className="nav-link text-sm">Depoimentos</a>
-        </nav>
+        .gold-gradient { background: linear-gradient(135deg, #C9A14A 0%, #E8C06A 50%, #9F7C34 100%); }
+        .float-animation { animation: float 3s ease-in-out infinite; }
+        .fade-in-up { animation: fadeInUp 0.8s ease-out; }
+        .hero-bg { background: radial-gradient(ellipse at center, rgba(201,161,74,0.1) 0%, transparent 70%); }
+      `}</style>
 
-        <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" className="text-sm text-white/70 hover:text-white transition-colors">Entrar</Link>
-          <Link href="/register" className="btn-gold px-6 py-2 rounded-lg text-sm">Começar Grátis</Link>
-        </div>
-
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden">
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-
-      {mobileOpen && (
-        <div className="md:hidden bg-[#0a0a0a] border-t border-white/5 p-4 space-y-4">
-          <a href="#beneficios" className="block text-sm text-white/70 hover:text-white">Benefícios</a>
-          <a href="#recursos" className="block text-sm text-white/70 hover:text-white">Recursos</a>
-          <a href="#preco" className="block text-sm text-white/70 hover:text-white">Preços</a>
-          <Link href="/register" className="block btn-gold px-4 py-2 rounded-lg text-sm text-center">Começar Grátis</Link>
-        </div>
-      )}
-    </header>
-  )
-}
-
-function HeroSection() {
-  return (
-    <section className="min-h-screen pt-20 flex items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#C9A14A]/10 via-transparent to-transparent" />
-
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-        <div className="inline-block mb-8 px-4 py-2 rounded-full border border-[#C9A14A]/30 bg-[#C9A14A]/10">
-          <p className="text-sm text-[#C9A14A] font-medium">✨ Empresa do Grupo Império</p>
-        </div>
-
-        <h1 className="text-5xl sm:text-7xl font-black mb-6 leading-tight">
-          Recupere seus <span className="gradient-text">clientes perdidos</span>
-        </h1>
-
-        <p className="text-xl text-white/60 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Retoquei é a plataforma de automação que traz clientes de volta para seu salão automaticamente. Com IA e WhatsApp, aumente sua receita em até 40% em 90 dias.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-          <Link href="/register" className="btn-gold px-8 py-4 rounded-xl text-lg flex items-center gap-2 group">
-            Começar Grátis <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+      {/* NAVBAR */}
+      <header className={`fixed w-full z-50 transition-all ${scrolled ? 'bg-black/80 backdrop-blur border-b border-gold/10' : 'bg-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 gold-gradient rounded-lg flex items-center justify-center font-bold">R</div>
+            <span className="hidden sm:block text-xl font-bold">Retoquei</span>
           </Link>
-          <button className="flex items-center gap-2 px-8 py-4 rounded-xl border border-white/20 hover:border-[#C9A14A]/50 hover:bg-white/5 transition-all">
-            <Play className="h-5 w-5 text-[#C9A14A]" /> Ver Demo (2 min)
+
+          <nav className="hidden md:flex gap-8">
+            {['Problema', 'Solução', 'Preços', 'Depoimentos'].map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-gray-300 hover:text-[#C9A14A] transition">
+                {item}
+              </a>
+            ))}
+          </nav>
+
+          <div className="hidden md:flex gap-4">
+            <Link href="/login" className="text-gray-300 hover:text-white">Entrar</Link>
+            <Link href="/register" className="gold-gradient px-6 py-2 rounded-lg font-semibold text-black">Teste Grátis</Link>
+          </div>
+
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden">
+            {mobileOpen ? <X /> : <Menu />}
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-20 pt-16 border-t border-white/10">
-          <div>
-            <p className="text-3xl sm:text-4xl font-bold gradient-text">+500</p>
-            <p className="text-white/60 text-sm mt-2">Salões usando Retoquei</p>
-          </div>
-          <div>
-            <p className="text-3xl sm:text-4xl font-bold gradient-text">40%</p>
-            <p className="text-white/60 text-sm mt-2">Aumento médio de receita</p>
-          </div>
-          <div>
-            <p className="text-3xl sm:text-4xl font-bold gradient-text">10k+</p>
-            <p className="text-white/60 text-sm mt-2">Clientes recuperados/mês</p>
-          </div>
+        {mobileOpen && (
+          <nav className="md:hidden bg-black/95 border-t border-gold/10 p-6 space-y-4">
+            {['Problema', 'Solução', 'Preços', 'Depoimentos'].map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="block text-gray-300 hover:text-[#C9A14A]">
+                {item}
+              </a>
+            ))}
+            <Link href="/register" className="block gold-gradient px-4 py-2 rounded text-center font-semibold text-black">Teste Grátis</Link>
+          </nav>
+        )}
+      </header>
+
+      {/* HERO */}
+      <section className="pt-32 pb-20 px-6 relative hero-bg overflow-hidden">
+        <div className="absolute inset-0 opacity-30 pointer-events-none">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="absolute rounded-full gold-gradient blur-3xl opacity-20 float-animation"
+              style={{
+                width: Math.random() * 200 + 100,
+                height: Math.random() * 200 + 100,
+                left: Math.random() * 100 + '%',
+                top: Math.random() * 100 + '%',
+                animationDelay: i * 0.2 + 's'
+              }} />
+          ))}
         </div>
-      </div>
-    </section>
-  )
-}
 
-function BenefitSection() {
-  const benefits = [
-    {
-      icon: Users,
-      title: 'Recupere Clientes Automaticamente',
-      desc: 'Nossa IA identifica clientes em risco e envia mensagens personalizadas no momento certo para trazer eles de volta.'
-    },
-    {
-      icon: MessageSquare,
-      title: 'WhatsApp Automático e Inteligente',
-      desc: 'Envie mensagens via WhatsApp em escala. Personalizadas, automáticas e com taxa de resposta de até 60%.'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Aumento Comprovado de Receita',
-      desc: 'Clientes recuperados geram em média R$ 450 em receita. Com Retoquei, sua carteira cresce consistentemente.'
-    },
-    {
-      icon: Clock,
-      title: 'Economize Tempo do Seu Tim',
-      desc: 'Dispense sua vendedora para fazer prospecção. O sistema faz o trabalho 24/7 de forma inteligente.'
-    },
-    {
-      icon: BarChart3,
-      title: 'Dashboard Completo em Tempo Real',
-      desc: 'Acompanhe cada métrica: clientes recuperados, receita gerada, engajamento, tudo em um lugar.'
-    },
-    {
-      icon: Zap,
-      title: 'Setup Instantâneo',
-      desc: 'Importe seus clientes em 5 minutos. Em 1 hora o sistema já está funcionando para você.'
-    },
-  ]
+        <div className="max-w-3xl mx-auto text-center relative z-10 fade-in-up">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            Recupere Clientes Perdidos <span className="gold-gradient bg-clip-text text-transparent">Automaticamente</span>
+          </h1>
 
-  return (
-    <section id="beneficios" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto">
-      <div className="text-center mb-16">
-        <h2 className="text-4xl sm:text-5xl font-black mb-6">
-          Por que <span className="gradient-text">Retoquei é diferente</span>
-        </h2>
-        <p className="text-xl text-white/60 max-w-2xl mx-auto">
-          A única plataforma que combina IA, WhatsApp e análise de comportamento especificamente para salões de beleza.
-        </p>
-      </div>
+          <p className="text-xl text-gray-400 mb-8 leading-relaxed">
+            Retoquei identifica quando suas clientes estão sumindo e as traz de volta com mensagens WhatsApp personalizadas — totalmente automático. Aumente seu faturamento em até 40%.
+          </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {benefits.map((b, i) => (
-          <div key={i} className="card-hover rounded-2xl p-8 border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02]">
-            <div className="feature-icon h-14 w-14 rounded-xl flex items-center justify-center mb-4">
-              <b.icon className="h-7 w-7 text-[#C9A14A]" />
-            </div>
-            <h3 className="text-lg font-bold mb-2">{b.title}</h3>
-            <p className="text-white/60 text-sm leading-relaxed">{b.desc}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function PricingSection() {
-  const plans = [
-    {
-      name: 'Starter',
-      price: 'R$ 99',
-      desc: 'Para salões pequenos',
-      features: ['Até 500 clientes', '1 usuário', 'Suporte básico', 'Dashboard completo', 'WhatsApp ilimitado'],
-      cta: 'Começar'
-    },
-    {
-      name: 'Pro',
-      price: 'R$ 299',
-      desc: 'Mais popular',
-      features: ['Até 2000 clientes', '5 usuários', 'Suporte prioritário', 'Relatórios avançados', 'API de integração', 'Fluxos customizados'],
-      cta: 'Começar',
-      highlighted: true
-    },
-    {
-      name: 'Enterprise',
-      price: 'Sob demanda',
-      desc: 'Para cadeias',
-      features: ['Clientes ilimitados', 'Usuários ilimitados', 'Suporte 24/7', 'Onboarding dedicado', 'Integrações custom', 'Treinamento incluído'],
-      cta: 'Falar com Sales'
-    },
-  ]
-
-  return (
-    <section id="preco" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto">
-      <div className="text-center mb-16">
-        <h2 className="text-4xl sm:text-5xl font-black mb-6">
-          Planos transparentes e <span className="gradient-text">sem surpresas</span>
-        </h2>
-        <p className="text-xl text-white/60">
-          Escolha o plano que melhor se adequa ao seu salão. Cancele quando quiser.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((plan, i) => (
-          <div
-            key={i}
-            className={`card-hover rounded-2xl p-8 relative overflow-hidden border transition-all ${
-              plan.highlighted
-                ? 'border-[#C9A14A]/50 bg-gradient-to-br from-[#C9A14A]/20 via-[#C9A14A]/5 to-transparent ring-2 ring-[#C9A14A]/30'
-                : 'border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02]'
-            }`}
-          >
-            {plan.highlighted && (
-              <div className="absolute top-4 right-4 bg-[#C9A14A] text-black px-3 py-1 rounded-full text-xs font-bold">
-                Popular
-              </div>
-            )}
-
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-              <p className="text-white/60 text-sm mb-4">{plan.desc}</p>
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black">{plan.price}</span>
-                {plan.price !== 'Sob demanda' && <span className="text-white/60">/mês</span>}
-              </div>
-            </div>
-
-            <ul className="space-y-3 mb-8">
-              {plan.features.map((f, j) => (
-                <li key={j} className="flex items-start gap-3 text-sm">
-                  <CheckCircle className="h-5 w-5 text-[#C9A14A] flex-shrink-0" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              href="/register"
-              className={`w-full block text-center py-3 rounded-xl font-bold transition-all ${
-                plan.highlighted
-                  ? 'btn-gold'
-                  : 'border border-white/20 hover:border-[#C9A14A]/50 hover:bg-white/5'
-              }`}
-            >
-              {plan.cta}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Link href="/register" className="gold-gradient px-8 py-4 rounded-lg font-semibold text-black text-lg hover:shadow-2xl transition flex items-center justify-center gap-2">
+              Comece o Teste Grátis por 14 Dias <ArrowRight className="w-5 h-5" />
             </Link>
+            <button className="border-2 border-[#C9A14A] text-[#C9A14A] px-8 py-4 rounded-lg font-semibold hover:bg-[#C9A14A]/10 transition">
+              Ver Demo
+            </button>
           </div>
-        ))}
-      </div>
 
-      <div className="mt-16 p-6 rounded-2xl border border-white/10 bg-white/5 text-center">
-        <p className="text-white/60 mb-2">🎁 Primeiros 14 dias são GRÁTIS. Sem cartão de crédito.</p>
-        <p className="text-sm text-white/40">Já inclui todos os recursos. Cancele quando quiser.</p>
-      </div>
-    </section>
-  )
-}
+          <p className="text-gray-500 text-sm">✓ Sem cartão de crédito • ✓ Sem compromisso • ✓ Suporte em português</p>
+        </div>
+      </section>
 
-function TestimonialsSection() {
-  const testimonials = [
-    {
-      name: 'Marina Silva',
-      salon: 'Salão Aurora',
-      text: 'Retoquei me fez economizar R$ 3k/mês com vendedora e aumentou minha receita em 35% em 2 meses. Não consigo mais viver sem.',
-      avatar: '👩‍🦰'
-    },
-    {
-      name: 'Carolina Oliveira',
-      salon: 'Studio Carol',
-      text: 'A automação do WhatsApp é INCRÍVEL. Meus clientes dormindo recebem mensagens personalizadas. 60% de taxa de resposta!',
-      avatar: '👩‍🦱'
-    },
-    {
-      name: 'Beatriz Costa',
-      salon: 'Beleza & Estética',
-      text: 'Dashboard super intuitivo. Em 1 semana já sabia exatamente quais clientes recuperar. ROI em menos de 30 dias.',
-      avatar: '👩'
-    },
-  ]
+      {/* PROBLEMA */}
+      <section id="problema" className="py-20 px-6 bg-gradient-to-b from-black to-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-16">Você Está Deixando Dinheiro Na Mesa</h2>
 
-  return (
-    <section id="depoimentos" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto">
-      <div className="text-center mb-16">
-        <h2 className="text-4xl sm:text-5xl font-black mb-6">
-          Amado por <span className="gradient-text">salões em todo Brasil</span>
-        </h2>
-      </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { icon: '👻', title: 'Clientes Desaparecem', desc: '30% da sua base fica em risco e você não percebe. R$ 7-15 mil perdidos por ano.' },
+              { icon: '⏱️', title: 'Sem Automação', desc: 'Você perde 3-5 horas/semana tentando fazer retenção manual. Resultado: apenas 10% de recuperação.' },
+              { icon: '📊', title: 'Crescimento Travado', desc: 'Você gasta tudo em adquirir clientes novos, mas perde as antigas. Crescimento virou acidental.' }
+            ].map((item, i) => (
+              <div key={i} className="bg-gray-900 border border-[#C9A14A]/30 rounded-xl p-8 hover:border-[#C9A14A] transition">
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                <p className="text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {testimonials.map((t, i) => (
-          <div key={i} className="card-hover rounded-2xl p-8 border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02]">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="text-4xl">{t.avatar}</div>
+      {/* SOLUÇÃO */}
+      <section id="solução" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-16">Como Retoquei Resolve</h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { num: '01', title: 'Identifica', desc: 'Monitora clientes que não voltam há 30+ dias' },
+              { num: '02', title: 'Personaliza', desc: 'Cria mensagens automáticas por perfil' },
+              { num: '03', title: 'Recupera', desc: '45-55% voltam com a primeira mensagem' }
+            ].map((item, i) => (
+              <div key={i} className="relative">
+                <div className="text-6xl font-bold text-[#C9A14A]/20 mb-4">{item.num}</div>
+                <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
+                <p className="text-gray-400 text-lg">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-16 bg-gradient-to-r from-[#C9A14A]/10 to-transparent border border-[#C9A14A]/30 rounded-xl p-8 md:p-12">
+            <div className="flex items-start gap-6">
+              <BarChart3 className="w-12 h-12 text-[#C9A14A] flex-shrink-0 mt-2" />
               <div>
-                <p className="font-bold">{t.name}</p>
-                <p className="text-sm text-white/60">{t.salon}</p>
+                <h3 className="text-2xl font-bold mb-3">Resultado Real</h3>
+                <p className="text-gray-300 mb-4">Salões que usam Retoquei recuperam em média:</p>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <div className="text-3xl font-bold text-[#C9A14A]">5-15</div>
+                    <p className="text-gray-400">clientes/mês</p>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-[#C9A14A]">+12-40%</div>
+                    <p className="text-gray-400">faturamento</p>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-[#C9A14A]">6-30x</div>
+                    <p className="text-gray-400">ROI</p>
+                  </div>
+                </div>
               </div>
             </div>
-            <p className="text-white/80 italic">"{t.text}"</p>
-            <div className="flex gap-1 mt-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-[#C9A14A] text-[#C9A14A]" />
-              ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PREÇOS */}
+      <section id="preços" className="py-20 px-6 bg-gradient-to-b from-gray-900 to-black">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-16">Escolha Seu Plano</h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                name: 'Starter',
+                price: '97',
+                desc: 'Para salões pequenos',
+                features: ['Até 500 clientes', '1 usuário', 'WhatsApp ilimitado', 'Suporte email']
+              },
+              {
+                name: 'Professional',
+                price: '297',
+                desc: 'Mais popular',
+                popular: true,
+                features: ['Até 2.000 clientes', '5 usuários', 'WhatsApp + automação', 'Prioridade 24h', 'Analytics avançado']
+              },
+              {
+                name: 'Enterprise',
+                price: 'Custom',
+                desc: 'Grandes redes',
+                features: ['Clientes ilimitados', 'Usuários ilimitados', 'Integrações custom', 'Account manager dedicado']
+              }
+            ].map((plan, i) => (
+              <div key={i} className={`rounded-xl p-8 transition ${plan.popular ? 'gold-gradient md:scale-110' : 'bg-gray-900 border border-gray-800'}`}>
+                <h3 className={`text-2xl font-bold mb-2 ${plan.popular ? 'text-black' : ''}`}>{plan.name}</h3>
+                <p className={`text-sm mb-6 ${plan.popular ? 'text-black/70' : 'text-gray-400'}`}>{plan.desc}</p>
+
+                <div className="mb-8">
+                  <span className={`text-4xl font-bold ${plan.popular ? 'text-black' : 'text-[#C9A14A]'}`}>
+                    R$ {plan.price}
+                  </span>
+                  {plan.price !== 'Custom' && <span className={plan.popular ? 'text-black/70' : 'text-gray-400'}>/mês</span>}
+                </div>
+
+                <button className={`w-full py-3 rounded-lg font-semibold mb-8 transition ${plan.popular ? 'bg-black text-white hover:bg-black/80' : 'border border-[#C9A14A] text-[#C9A14A] hover:bg-[#C9A14A]/10'}`}>
+                  Começar
+                </button>
+
+                <ul className="space-y-4">
+                  {plan.features.map((feature, j) => (
+                    <li key={j} className={`flex items-center gap-3 ${plan.popular ? 'text-black' : 'text-gray-300'}`}>
+                      <Check className="w-5 h-5" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-gray-500 mt-12">Todos os planos incluem garantia 30 dias (reembolso total).</p>
+        </div>
+      </section>
+
+      {/* DEPOIMENTOS */}
+      <section id="depoimentos" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-16">Confie em Quem Já Usa</h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { name: 'Mariana Silva', salon: 'Salão Beauty Gold', text: 'Recuperei 23 clientes no primeiro mês. Isso foi R$ 4.200 em receita que eu teria perdido. Retoquei pagou por si mesma em dias.', rating: 5 },
+              { name: 'João Santos', salon: 'Studio Moderno', text: 'Antes, perdia clientes silenciosamente. Agora sou avisado e mando uma mensagem. Simples, automático, eficaz. 40% de aumento em retenção.', rating: 5 },
+              { name: 'Ana Costa', salon: 'Grupo Beleza Brasil', text: 'Estávamos perdendo 30% dos clientes todo ano. Com Retoquei, conseguimos manter 70%. E o melhor: sem trabalho manual. Automático 100%.', rating: 5 }
+            ].map((review, i) => (
+              <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-8 hover:border-[#C9A14A] transition">
+                <div className="flex gap-1 mb-4">
+                  {[...Array(review.rating)].map((_, j) => (
+                    <Star key={j} className="w-5 h-5 fill-[#C9A14A] text-[#C9A14A]" />
+                  ))}
+                </div>
+                <p className="text-gray-300 mb-6 italic">"{review.text}"</p>
+                <div>
+                  <p className="font-bold">{review.name}</p>
+                  <p className="text-sm text-gray-500">{review.salon}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="py-20 px-6 gold-gradient relative overflow-hidden">
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <h2 className="text-4xl font-bold text-black mb-6">Pronto Para Recuperar Seus Clientes?</h2>
+          <p className="text-black/80 text-lg mb-8">Teste Retoquei por 14 dias. Grátis. Sem cartão de crédito.</p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/register" className="bg-black text-white px-8 py-4 rounded-lg font-semibold hover:bg-black/80 transition">
+              Comece Agora
+            </Link>
+            <button className="border-2 border-black text-black px-8 py-4 rounded-lg font-semibold hover:bg-black/10 transition">
+              Agendar Demo
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-black border-t border-gray-800 py-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h3 className="font-bold mb-4">Produto</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-[#C9A14A]">Features</a></li>
+                <li><a href="#" className="hover:text-[#C9A14A]">Preços</a></li>
+                <li><a href="#" className="hover:text-[#C9A14A]">Segurança</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Empresa</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-[#C9A14A]">Sobre</a></li>
+                <li><a href="#" className="hover:text-[#C9A14A]">Blog</a></li>
+                <li><a href="#" className="hover:text-[#C9A14A]">Contato</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Legal</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-[#C9A14A]">Privacidade</a></li>
+                <li><a href="#" className="hover:text-[#C9A14A]">Termos</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4">Suporte</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-[#C9A14A]">Ajuda</a></li>
+                <li><a href="#" className="hover:text-[#C9A14A]">Status</a></li>
+              </ul>
             </div>
           </div>
-        ))}
-      </div>
-    </section>
-  )
-}
 
-function CTASection() {
-  return (
-    <section className="py-20 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto rounded-3xl p-12 sm:p-16 text-center relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, rgba(201,161,74,0.15) 0%, rgba(232,192,106,0.08) 100%)' }}>
-        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, rgba(201,161,74,0.2) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(232,192,106,0.2) 0%, transparent 50%)' }} />
-
-        <div className="relative z-10">
-          <h2 className="text-4xl sm:text-5xl font-black mb-6">
-            Pronto para recuperar seus clientes?
-          </h2>
-          <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-            A maioria dos salões vê resultados em menos de 30 dias. Comece agora com 14 dias grátis.
-          </p>
-
-          <Link href="/register" className="btn-gold px-8 py-4 rounded-xl text-lg font-bold inline-flex items-center gap-2 group">
-            Começar Meus 14 Dias Grátis <ArrowRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-          </Link>
-
-          <p className="text-white/50 text-sm mt-6">
-            Sem cartão de crédito. Sem compromisso. Cancele quando quiser.
-          </p>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function Footer() {
-  return (
-    <footer className="border-t border-white/10 py-12 px-4 sm:px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 mb-8">
-          <div>
-            <p className="font-bold mb-4">Retoquei</p>
-            <p className="text-white/60 text-sm">Recuperando clientes, aumentando receita.</p>
-          </div>
-          <div>
-            <p className="font-bold text-sm mb-4">Produto</p>
-            <ul className="space-y-2 text-white/60 text-sm">
-              <li><a href="#recursos" className="hover:text-white transition">Recursos</a></li>
-              <li><a href="#preco" className="hover:text-white transition">Preços</a></li>
-              <li><a href="#" className="hover:text-white transition">Roadmap</a></li>
-            </ul>
-          </div>
-          <div>
-            <p className="font-bold text-sm mb-4">Empresa</p>
-            <ul className="space-y-2 text-white/60 text-sm">
-              <li><a href="/contact" className="hover:text-white transition">Contato</a></li>
-              <li><a href="#" className="hover:text-white transition">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition">Sobre</a></li>
-            </ul>
-          </div>
-          <div>
-            <p className="font-bold text-sm mb-4">Legal</p>
-            <ul className="space-y-2 text-white/60 text-sm">
-              <li><a href="#" className="hover:text-white transition">Privacy</a></li>
-              <li><a href="#" className="hover:text-white transition">Terms</a></li>
-            </ul>
+          <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
+            <p>© 2024 Retoquei. Todos os direitos reservados. Empresa do Grupo Império.</p>
           </div>
         </div>
-
-        <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center text-white/50 text-sm">
-          <p>© 2026 Retoquei. Empresa do Grupo Império. Todos os direitos reservados.</p>
-          <div className="flex gap-6 mt-4 sm:mt-0">
-            <a href="#" className="hover:text-white transition">Twitter</a>
-            <a href="#" className="hover:text-white transition">Instagram</a>
-            <a href="#" className="hover:text-white transition">LinkedIn</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  )
-}
-
-export default function LandingPage() {
-  return (
-    <div className="min-h-screen text-white" style={{ background: '#080808' }}>
-      <G />
-      <FloatingParticles />
-      <Navbar />
-      <HeroSection />
-      <BenefitSection />
-      <PricingSection />
-      <TestimonialsSection />
-      <CTASection />
-      <Footer />
+      </footer>
     </div>
   )
 }
