@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { QUEUES } from '@/lib/redis'
 
 // ---------------------------------------------------------------------------
 // GET /api/outbound-messages — List messages with filters
@@ -121,10 +122,27 @@ export async function POST(req: NextRequest) {
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
     },
   })
-
-  // TODO: Queue for sending via job queue (BullMQ)
-  // For now, log the creation
+  // Enqueue to message-send queue if not scheduled
+  let jobId: string | null = null
+  if (!scheduledAt) {
+    try {
+      const queue = QUEUES['message-send']
+      const job = await queue.add(`send-${message.id}`, {
+        messageId: message.id,
+        tenantId,
+        toNumber,
+        body: bodyRendered,
+        channel,
+      }, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+      })
+      jobId = job.id
+    } catch (err) {
+      console.error(`[OutboundMessage] Failed to queue job for ${message.id}:`, err)
+    }
+  }
   console.log(`[OutboundMessage] Created message ${message.id}`)
 
-  return NextResponse.json({ message, ok: true }, { status: 201 })
+  return NextResponse.json({ message, jobId, ok: true }, { status: 201 })
 }
