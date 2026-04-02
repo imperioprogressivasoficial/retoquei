@@ -163,14 +163,14 @@ function DashboardMockup() {
 
   const customers = [
     { name: 'Ana Beatriz', service: 'Coloração', days: 42, stage: 'Em Risco', stageColor: 'text-amber-400', dot: 'bg-amber-400' },
-    { name: 'Carla Mendes', service: 'Escova', days: 8, stage: 'Ativo', stageColor: 'text-emerald-400', dot: 'bg-emerald-400' },
+    { name: 'Marina Costa', service: 'Progressiva', days: 35, stage: 'Em Risco', stageColor: 'text-amber-400', dot: 'bg-amber-400' },
     { name: 'Fernanda S.', service: 'Manicure', days: 71, stage: 'Perdido', stageColor: 'text-rose-400', dot: 'bg-rose-400' },
     { name: 'Juliana R.', service: 'Hidratação', days: 15, stage: 'VIP', stageColor: 'text-[#C9A14A]', dot: 'bg-[#C9A14A]' },
   ]
 
   const msgs = [
     '✅ "Ana, sentimos sua falta! Seu próximo retoque…"',
-    '📨 "Carla, seu aniversário está chegando…"',
+    '📨 "Marina, que tal agendar sua próxima progressiva?…"',
     '💫 "Fernanda, exclusivo para você: 20% off…"',
     '🌟 "Juliana, novidade VIP disponível!"',
   ]
@@ -347,6 +347,7 @@ function StepCard({ n, title, desc }: { n: string; title: string; desc: string }
 function PricingCard({ name, price, desc, features, cta, highlighted }: {
   name: string; price: string; desc: string; features: string[]; cta: string; highlighted?: boolean
 }) {
+  const isProPlan = name === 'Pro'
   return (
     <div className={`card-hover rounded-2xl p-6 flex flex-col gap-5 relative overflow-hidden ${highlighted ? 'ring-1 ring-[#C9A14A]/40' : ''}`}
       style={{ background: highlighted ? 'linear-gradient(145deg,rgba(201,161,74,.1),rgba(201,161,74,.04))' : 'rgba(255,255,255,.03)', border: highlighted ? '1px solid rgba(201,161,74,.3)' : '1px solid rgba(255,255,255,.06)' }}>
@@ -374,7 +375,7 @@ function PricingCard({ name, price, desc, features, cta, highlighted }: {
           </li>
         ))}
       </ul>
-      <Link href="/register"
+      <Link href={isProPlan ? "/contact" : "/register"}
         className={`relative overflow-hidden w-full py-3 rounded-xl text-sm font-semibold text-center transition-all ${highlighted ? 'text-black gold-shimmer-btn' : 'text-white hover:text-[#C9A14A]'}`}
         style={{ background: highlighted ? 'linear-gradient(135deg,#C9A14A,#E8C06A)' : 'rgba(255,255,255,.05)', border: highlighted ? 'none' : '1px solid rgba(255,255,255,.08)' }}>
         {cta}
@@ -462,7 +463,7 @@ export default function LandingPage() {
         <div className="absolute top-20 -right-32 w-[400px] h-[400px] rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(ellipse,rgba(201,161,74,.05) 0%,transparent 60%)' }} />
 
-        <div className="relative max-w-5xl mx-auto text-center">
+        <AnimatedSection direction="up" className="relative max-w-5xl mx-auto text-center">
           {/* Grupo Império badge */}
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium mb-5"
             style={{ background: 'rgba(201,161,74,.1)', border: '1px solid rgba(201,161,74,.2)', color: '#C9A14A' }}>
@@ -512,7 +513,7 @@ export default function LandingPage() {
 
           {/* Dashboard */}
           <DashboardMockup />
-        </div>
+        </AnimatedSection>
       </section>
 
       {/* ── Stats ────────────────────────────────────────────────────────── */}
@@ -529,7 +530,7 @@ export default function LandingPage() {
               <p className="text-2xl md:text-3xl font-bold text-[#C9A14A] mb-1">
                 {s.pre}<AnimatedCounter target={s.n} suffix={s.suf} />
               </p>
-              <p className="text-xs text-white/40">{s.label}</p>
+              <p className="text-xs text-white/60">{s.label}</p>
             </div>
           ))}
         </div>
