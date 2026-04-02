@@ -6,36 +6,46 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { CSVImportWizardWrapper } from './CSVImportWizardWrapper'
 
-// ---------------------------------------------------------------------------
-// CSV Import Page
-// ---------------------------------------------------------------------------
-
 export default async function CSVIntegrationPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseId: user.id },
-    include: { ownedTenants: { take: 1 } },
-  })
-  const tenantId = dbUser?.ownedTenants[0]?.tenantId
+  let tenantId: string | null = null
+  let connectorId: string | null = null
+
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { supabaseId: user.id },
+      include: { ownedTenants: { take: 1 } },
+    })
+    tenantId = dbUser?.ownedTenants[0]?.tenantId || null
+  } catch (e) {
+    console.error('[CSV] Error fetching tenant:', e)
+  }
+
   if (!tenantId) redirect('/onboarding/1')
 
-  // Find or describe CSV connector
-  let connector = await prisma.bookingConnector.findFirst({
-    where: { tenantId, type: 'CSV' },
-  })
-
-  if (!connector) {
-    connector = await prisma.bookingConnector.create({
-      data: {
-        tenantId,
-        type: 'CSV',
-        name: 'Importação CSV',
-        status: 'CONNECTED',
-      },
+  try {
+    let connector = await prisma.bookingConnector.findFirst({
+      where: { tenantId, type: 'CSV' },
     })
+
+    if (!connector) {
+      connector = await prisma.bookingConnector.create({
+        data: {
+          tenantId,
+          type: 'CSV',
+          name: 'Importação CSV',
+          status: 'CONNECTED',
+        },
+      })
+    }
+    connectorId = connector.id
+  } catch (e) {
+    console.error('[CSV] Error with connector:', e)
+    // Create a temporary ID if DB fails
+    connectorId = `temp-${Date.now()}`
   }
 
   return (
@@ -53,7 +63,7 @@ export default async function CSVIntegrationPage() {
           </p>
         </div>
 
-        <CSVImportWizardWrapper connectorId={connector.id} />
+        {connectorId && <CSVImportWizardWrapper connectorId={connectorId} />}
       </div>
     </div>
   )
