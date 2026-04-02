@@ -378,26 +378,12 @@ function Step6({ onFinish }: { onFinish: () => void }) {
     setLoading(true)
     setError(null)
     try {
-      // Create tenant first
-      const tenantRes = await fetch('/api/tenants', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Meu Salão',
-          slug: `salon-${Date.now()}`
-        }),
-      })
-
-      if (!tenantRes.ok) {
-        throw new Error('Falha ao criar espaço')
-      }
-
-      // Then mark onboarding as complete
+      // Mark onboarding as complete (tenant already created in Step 2)
       await fetch('/api/users/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ onboardingComplete: true }),
-      }).catch(() => {})
+      })
 
       onFinish()
     } catch (err) {
