@@ -74,21 +74,32 @@ async function handleWhatsAppEvent(event: { id: string; tenantId: string | null;
 
     const newStatus = statusMap[payload.status ?? '']
     if (newStatus) {
-      await prisma.outboundMessage.updateMany({
+      // Find the message first to get its ID
+      const message = await prisma.outboundMessage.findFirst({
         where: { providerMessageId: payload.providerMessageId },
-        data: {
-          status: newStatus as 'DELIVERED' | 'READ' | 'FAILED' | 'SENT',
-          deliveredAt: newStatus === 'DELIVERED' ? new Date() : undefined,
-        },
+        select: { id: true },
       })
 
-      await prisma.messageEvent.create({
-        data: {
-          messageId: payload.providerMessageId,
-          eventType: payload.status ?? 'unknown',
-          payload: payload as object,
-        },
-      })
+      if (message) {
+        // Update message status
+        await prisma.outboundMessage.update({
+          where: { id: message.id },
+          data: {
+            status: newStatus as 'DELIVERED' | 'READ' | 'FAILED' | 'SENT',
+            deliveredAt: newStatus === 'DELIVERED' ? new Date() : undefined,
+            readAt: newStatus === 'READ' ? new Date() : undefined,
+          },
+        })
+
+        // Create event tracking
+        await prisma.messageEvent.create({
+          data: {
+            messageId: message.id,
+            eventType: payload.status ?? 'unknown',
+            payload: payload as object,
+          },
+        })
+      }
     }
   }
 
