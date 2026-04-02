@@ -29,23 +29,23 @@ export default function LandingPage() {
 
       {/* NAVBAR */}
       <header className={`fixed w-full z-50 transition-all ${scrolled ? 'bg-black/80 backdrop-blur border-b border-gold/10' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center whitespace-nowrap">
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-10 h-10 gold-gradient rounded-lg flex items-center justify-center font-bold">R</div>
             <span className="hidden sm:block text-xl font-bold">Retoquei</span>
           </Link>
 
-          <nav className="hidden md:flex gap-8">
+          <nav className="hidden lg:flex gap-12 flex-1 justify-center">
             {['Problema', 'Solução', 'Preços', 'Depoimentos'].map(item => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="text-gray-300 hover:text-[#C9A14A] transition">
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-sm text-gray-300 hover:text-[#C9A14A] transition whitespace-nowrap">
                 {item}
               </a>
             ))}
           </nav>
 
-          <div className="hidden md:flex gap-4">
-            <Link href="/login" className="text-gray-300 hover:text-white">Entrar</Link>
-            <Link href="/register" className="gold-gradient px-6 py-2 rounded-lg font-semibold text-black">Teste Grátis</Link>
+          <div className="hidden lg:flex gap-4 flex-shrink-0">
+            <Link href="/login" className="text-sm text-gray-300 hover:text-white whitespace-nowrap">Entrar</Link>
+            <Link href="/register" className="gold-gradient px-6 py-2 rounded-lg font-semibold text-black text-sm whitespace-nowrap">Teste Grátis</Link>
           </div>
 
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden">
