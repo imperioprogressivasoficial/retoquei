@@ -15,7 +15,6 @@ import { subMonths, startOfMonth, endOfMonth, format } from 'date-fns'
 // Dashboard Page — server component for fast initial load
 // ---------------------------------------------------------------------------
 
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
 
 function getMockDashboardData() {
   const evolutionData = Array.from({ length: 12 }, (_, i) => {
@@ -46,57 +45,6 @@ function getMockDashboardData() {
 }
 
 export default async function DashboardPage() {
-  if (IS_DEV_MODE) {
-    const mock = getMockDashboardData()
-    const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(n)
-    const fmtCurrency = (n: number) =>
-      new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
-
-    return (
-      <div className="flex flex-col gap-0">
-        <TopBar title="Dashboard" subtitle={mock.tenantName} />
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <KPICard title="Total de Clientes"  value={fmt(mock.totalCustomers)}   icon={<Users className="h-4 w-4" />} />
-            <KPICard title="Novos Clientes"     value={fmt(mock.newCustomers)}     variant="default" icon={<UserPlus className="h-4 w-4" />} />
-            <KPICard title="Recorrentes"        value={fmt(mock.recurringCustomers)} variant="success" icon={<RefreshCw className="h-4 w-4" />} />
-            <KPICard title="VIP"                value={fmt(mock.vipCustomers)}     variant="gold" icon={<Crown className="h-4 w-4" />} />
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <KPICard title="Em Risco"           value={fmt(mock.atRiskCustomers)}  variant="warning" icon={<AlertTriangle className="h-4 w-4" />} />
-            <KPICard title="Perdidos"           value={fmt(mock.lostCustomers)}    variant="danger"  icon={<UserX className="h-4 w-4" />} />
-            <KPICard title="Retenção"           value={`${mock.retentionRate}%`}   variant="success" icon={<TrendingUp className="h-4 w-4" />} />
-            <KPICard title="Taxa de Entrega"    value={`${mock.deliveryRate}%`}    icon={<MessageSquare className="h-4 w-4" />} />
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <KPICard title="Ticket Médio"       value={fmtCurrency(mock.avgTicket)} icon={<BarChart2 className="h-4 w-4" />} />
-            <KPICard title="LTV Médio"          value={fmtCurrency(mock.avgLtv)}   variant="gold" icon={<DollarSign className="h-4 w-4" />} />
-            <KPICard title="Intervalo Médio"    value={`${mock.avgDays} dias`}     icon={<RefreshCw className="h-4 w-4" />} />
-            <KPICard title="Mensagens Enviadas" value={fmt(mock.messagesSent)}     icon={<MessageSquare className="h-4 w-4" />} />
-          </div>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 rounded-xl border border-border bg-[#1E1E1E] p-5">
-              <h2 className="text-sm font-semibold text-white mb-4">Evolução da Base de Clientes</h2>
-              <CustomerEvolutionChart data={mock.evolutionData} />
-            </div>
-            <div className="rounded-xl border border-border bg-[#1E1E1E] p-5">
-              <h2 className="text-sm font-semibold text-white mb-4">Distribuição por Estágio</h2>
-              <SegmentDistributionChart data={mock.segmentData} />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  // Load data safely — fall back to empty state if DB is unavailable
-  let tenantName = 'Meu Salão'
-  let totalCustomers = 0, newCustomers = 0, recurringCustomers = 0, vipCustomers = 0
-  let atRiskCustomers = 0, lostCustomers = 0, messagesSent = 0, messagesDelivered = 0
   let avgTicket = 0, avgLtv = 0, avgDays = 0
   let evolutionData: { month: string; total: number; new: number; recurring: number }[] = []
 
