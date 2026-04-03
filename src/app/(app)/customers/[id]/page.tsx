@@ -77,7 +77,7 @@ export default async function CustomerProfilePage({ params }: { params: { id: st
               </div>
             </div>
             <div className="flex flex-col items-end gap-3">
-              {customer.tags.length > 0 && (
+              {customer.tags?.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 justify-end">
                   {customer.tags.map((tag: string) => (
                     <span key={tag} className="rounded-full bg-white/5 border border-border px-2 py-0.5 text-xs text-muted-foreground">

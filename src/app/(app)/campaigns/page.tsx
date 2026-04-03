@@ -43,7 +43,7 @@ export default async function CampaignsPage() {
     name: c.name,
     status: c.status,
     sentCount: c.sentCount,
-    createdAt: c.createdAt.toISOString(),
+    createdAt: c.createdAt?.toISOString() ?? new Date().toISOString(),
     segment: c.segment ? { name: c.segment.name } : null,
     template: c.template ? { name: c.template.name } : null,
   }))
