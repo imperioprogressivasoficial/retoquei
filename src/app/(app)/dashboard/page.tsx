@@ -45,6 +45,13 @@ function getMockDashboardData() {
 }
 
 export default async function DashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  let tenantName = 'Meu Salão'
+  let totalCustomers = 0, newCustomers = 0, recurringCustomers = 0, vipCustomers = 0
+  let atRiskCustomers = 0, lostCustomers = 0, messagesSent = 0, messagesDelivered = 0
   let avgTicket = 0, avgLtv = 0, avgDays = 0
   let evolutionData: { month: string; total: number; new: number; recurring: number }[] = []
 
