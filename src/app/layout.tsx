@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
-import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 const inter = Inter({
@@ -43,31 +41,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" className={inter.variable} suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster
-            theme="dark"
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: '#1A1A1A',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#F5F5F5',
-                borderRadius: '10px',
-                fontSize: '13px',
-              },
-            }}
-          />
-          <Analytics />
-        </ThemeProvider>
+    <html lang="pt-BR" className={inter.variable}>
+      <body className={`${inter.className} antialiased bg-white text-gray-900`}>
+        {children}
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#FFFFFF',
+              border: '1px solid rgba(0,0,0,0.1)',
+              color: '#1F2937',
+              borderRadius: '8px',
+              fontSize: '13px',
+            },
+          }}
+        />
       </body>
     </html>
   )
