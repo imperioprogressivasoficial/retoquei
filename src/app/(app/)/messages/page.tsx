@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send } from 'lucide-react';
-import { Toaster, toast } from 'sonner';
+import { Loader2, Send, RefreshCw } from 'lucide-react';
+import { toast, Toaster } from 'sonner';
 
 const sendMessageSchema = z.object({
   toNumber: z.string().min(10, 'Número de telefone inválido'),
@@ -42,7 +42,13 @@ export default function MessagesPage() {
     setIsLoadingMessages(true);
     try {
       const response = await fetch('/api/messages');
-      if (!response.ok) throw new Error('Failed to fetch messages');
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error('Failed to fetch messages');
+      }
       const data = await response.json();
       setMessages(data);
     } catch (error) {
@@ -51,6 +57,10 @@ export default function MessagesPage() {
       setIsLoadingMessages(false);
     }
   };
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
 
   const onSubmit = async (data: SendMessageForm) => {
     try {
@@ -61,15 +71,16 @@ export default function MessagesPage() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
         const error = await response.json();
         throw new Error(error.message || 'Failed to send message');
       }
 
-      const result = await response.json();
       toast.success('Mensagem enviada com sucesso!');
       reset();
-
-      // Refresh messages list
       await fetchMessages();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao enviar mensagem');
@@ -140,8 +151,10 @@ export default function MessagesPage() {
               variant="outline"
               onClick={fetchMessages}
               disabled={isLoadingMessages}
+              className="gap-2"
             >
-              {isLoadingMessages ? 'Carregando...' : 'Atualizar Histórico'}
+              <RefreshCw className={`w-4 h-4 ${isLoadingMessages ? 'animate-spin' : ''}`} />
+              {isLoadingMessages ? 'Carregando...' : 'Atualizar'}
             </Button>
           </div>
         </form>
