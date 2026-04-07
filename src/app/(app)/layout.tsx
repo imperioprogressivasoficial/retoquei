@@ -1,57 +1,26 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import NavBar from '@/components/layout/navbar';
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await createClient();
 
-  if (!user) redirect('/login')
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // Try to load tenant info — fail gracefully if DB is unavailable
-  let tenantName = 'Meu Salão'
-  let userEmail = user.email ?? ''
-
-  try {
-    const dbUser = await prisma.user.findUnique({
-      where: { supabaseId: user.id },
-      include: {
-        ownedTenants: {
-          include: { tenant: true },
-          orderBy: { invitedAt: 'asc' },
-          take: 1,
-        },
-      },
-    })
-
-    if (!dbUser) {
-      // First login — create DB user and send to onboarding
-      await prisma.user.create({
-        data: {
-          supabaseId: user.id,
-          email: user.email!,
-          fullName: user.user_metadata?.full_name ?? user.email!.split('@')[0],
-        },
-      })
-      redirect('/onboarding/1')
-    }
-
-    if (dbUser.ownedTenants.length === 0) {
-      redirect('/onboarding/1')
-    }
-
-    tenantName = dbUser.ownedTenants[0].tenant.name
-  } catch {
-    // DB unreachable — still show the app with default values
+  if (!user) {
+    redirect('/login');
   }
 
   return (
-    <div className="flex h-screen bg-[#0A0A0A]">
-      <Sidebar tenantName={tenantName} userEmail={userEmail} />
-      <main className="flex-1 overflow-y-auto bg-[#0D0D0D]">
-        {children}
-      </main>
+    <div className="min-h-screen bg-white">
+      <NavBar user={user} />
+      <main className="container mx-auto">{children}</main>
     </div>
-  )
+  );
 }

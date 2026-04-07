@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const sendMessageSchema = z.object({
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing tenant ID' }, { status: 400 });
     }
 
-    const messages = await db.outboundMessage.findMany({
+    const messages = await prisma.outboundMessage.findMany({
       where: { tenantId },
       include: { template: true, events: true },
       orderBy: { createdAt: 'desc' },
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     const { toNumber, bodyRendered } = sendMessageSchema.parse(body);
 
     // Create outbound message
-    const message = await db.outboundMessage.create({
+    const message = await prisma.outboundMessage.create({
       data: {
         tenantId,
         toNumber,

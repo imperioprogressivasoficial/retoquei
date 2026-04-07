@@ -46,8 +46,10 @@ model Tenant {
 
   // Relations
   owner            User                 @relation("TenantOwner", fields: [ownerId], references: [id])
+  tenantUsers      TenantUser[]
   messageTemplates MessageTemplate[]
   outboundMessages OutboundMessage[]
+  webhookEvents    WebhookEvent[]
 
   @@index([slug])
   @@index([ownerId])
@@ -63,11 +65,29 @@ model User {
   updatedAt  DateTime @updatedAt
 
   // Relations
-  tenantsOwned Tenant[] @relation("TenantOwner")
+  tenantsOwned Tenant[]     @relation("TenantOwner")
+  ownedTenants TenantUser[]
 
   @@index([email])
   @@index([supabaseId])
   @@map("users")
+}
+
+model TenantUser {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  invitedAt DateTime @default(now())
+  joinedAt  DateTime?
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("tenant_users")
 }
 
 
@@ -127,4 +147,25 @@ model MessageEvent {
   @@index([messageId])
   @@index([messageId, eventType])
   @@map("message_events")
+}
+
+model WebhookEvent {
+  id             String   @id @default(cuid())
+  tenantId       String?
+  source         String
+  eventType      String
+  payload        Json
+  processed      Boolean  @default(false)
+  error          String?
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+
+  // Relations
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([source])
+  @@index([processed])
+  @@index([createdAt])
+  @@map("webhook_events")
 }
