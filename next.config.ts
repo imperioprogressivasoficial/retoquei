@@ -22,8 +22,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', process.env.NEXT_PUBLIC_APP_URL ?? ''],
     },
-    // Disable Next.js DevTools to avoid segment-explorer-node.js errors
-    disableDevtools: true,
   },
 
   typescript: {
