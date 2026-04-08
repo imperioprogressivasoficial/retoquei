@@ -7,19 +7,8 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
     // TODO: Fix database connection and restore salon lookup
-    // Temporarily return mock salon
-    return NextResponse.json({
-      salon: {
-        id: 'temp-salon-id',
-        ownerUserId: user.id,
-        name: 'Meu Salão',
-        slug: 'meu-salao',
-        phone: null,
-        email: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    })
+    // Return null so user sees creation form
+    return NextResponse.json({ salon: null })
   } catch {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
