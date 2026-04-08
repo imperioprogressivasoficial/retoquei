@@ -50,7 +50,7 @@ export default function MessagesPage() {
         throw new Error('Failed to fetch messages');
       }
       const data = await response.json();
-      setMessages(data);
+      setMessages(data.messages || []);
     } catch (error) {
       toast.error('Erro ao carregar mensagens');
     } finally {
