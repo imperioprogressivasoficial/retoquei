@@ -1,6 +1,3 @@
-// Simplified Prisma schema for WhatsApp Message Sender
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,14 +8,310 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  fullName  String?  @map("full_name")
+  email     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-enum TenantStatus {
-  ACTIVE
-  SUSPENDED
+  salonMembers SalonMember[]
+
+  @@map("profiles")
+}
+
+model Salon {
+  id          String   @id @default(uuid())
+  ownerUserId String   @map("owner_user_id")
+  name        String
+  slug        String   @unique
+  phone       String?
+  email       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members      SalonMember[]
+  clients      Client[]
+  appointments Appointment[]
+  segments     Segment[]
+  templates    Template[]
+  campaigns    Campaign[]
+  automations  Automation[]
+  messages     Message[]
+  integrations Integration[]
+  imports      Import[]
+
+  @@map("salons")
+}
+
+model SalonMember {
+  id        String     @id @default(uuid())
+  salonId   String     @map("salon_id")
+  userId    String     @map("user_id")
+  role      MemberRole @default(STAFF)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  salon   Salon   @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId])
+
+  @@unique([salonId, userId])
+  @@map("salon_members")
+}
+
+enum MemberRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+model Client {
+  id                  String         @id @default(uuid())
+  salonId             String         @map("salon_id")
+  externalId          String?        @map("external_id")
+  fullName            String         @map("full_name")
+  phone               String
+  phoneNormalized     String         @map("phone_normalized")
+  email               String?
+  birthDate           DateTime?      @map("birth_date")
+  tags                String[]
+  source              ClientSource   @default(MANUAL)
+  firstVisitAt        DateTime?      @map("first_visit_at")
+  lastVisitAt         DateTime?      @map("last_visit_at")
+  visitCount          Int            @default(0) @map("visit_count")
+  totalSpent          Decimal        @default(0) @map("total_spent")
+  averageTicket       Decimal        @default(0) @map("average_ticket")
+  ltv                 Decimal        @default(0)
+  averageIntervalDays Int            @default(0) @map("average_interval_days")
+  lifecycleStage      LifecycleStage @default(NEW) @map("lifecycle_stage")
+  notes               String?
+  whatsappOptIn       Boolean        @default(true) @map("whatsapp_opt_in")
+  deletedAt           DateTime?      @map("deleted_at")
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+
+  salon              Salon               @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  appointments       Appointment[]
+  messages           Message[]
+  segments           ClientSegment[]
+  campaignRecipients CampaignRecipient[]
+
+  @@unique([salonId, phoneNormalized])
+  @@index([salonId])
+  @@index([lifecycleStage])
+  @@map("clients")
+}
+
+enum ClientSource {
+  MANUAL
+  CSV
+  WHATSAPP
+  WEBHOOK
+  API
+  INTEGRATION
+}
+
+enum LifecycleStage {
+  NEW
+  RECURRING
+  VIP
+  AT_RISK
+  LOST
+}
+
+model Appointment {
+  id               String            @id @default(uuid())
+  salonId          String            @map("salon_id")
+  clientId         String            @map("client_id")
+  externalId       String?           @map("external_id")
+  serviceName      String            @map("service_name")
+  serviceCategory  String?           @map("service_category")
+  professionalName String?           @map("professional_name")
+  appointmentDate  DateTime          @map("appointment_date")
+  status           AppointmentStatus @default(SCHEDULED)
+  amount           Decimal           @default(0)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  salon  Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([salonId])
+  @@index([clientId])
+  @@map("appointments")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
   CANCELLED
+  NO_SHOW
+}
+
+model Segment {
+  id          String      @id @default(uuid())
+  salonId     String      @map("salon_id")
+  name        String
+  description String?
+  type        SegmentType @default(DYNAMIC)
+  rulesJson   Json?       @map("rules_json")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  salon     Salon           @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  clients   ClientSegment[]
+  campaigns Campaign[]
+
+  @@map("segments")
+}
+
+enum SegmentType {
+  DYNAMIC
+  MANUAL
+}
+
+model ClientSegment {
+  id        String   @id @default(uuid())
+  salonId   String   @map("salon_id")
+  clientId  String   @map("client_id")
+  segmentId String   @map("segment_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, segmentId])
+  @@map("client_segments")
+}
+
+model Template {
+  id        String           @id @default(uuid())
+  salonId   String           @map("salon_id")
+  name      String
+  category  TemplateCategory @default(CUSTOM)
+  content   String
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  salon       Salon        @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  campaigns   Campaign[]
+  automations Automation[]
+  messages    Message[]
+
+  @@map("templates")
+}
+
+enum TemplateCategory {
+  REACTIVATION
+  POST_VISIT
+  BIRTHDAY
+  UPSELL
+  CUSTOM
+}
+
+model Campaign {
+  id          String         @id @default(uuid())
+  salonId     String         @map("salon_id")
+  name        String
+  segmentId   String?        @map("segment_id")
+  templateId  String?        @map("template_id")
+  status      CampaignStatus @default(DRAFT)
+  scheduledAt DateTime?      @map("scheduled_at")
+  startedAt   DateTime?      @map("started_at")
+  finishedAt  DateTime?      @map("finished_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  salon      Salon               @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  segment    Segment?            @relation(fields: [segmentId], references: [id])
+  template   Template?           @relation(fields: [templateId], references: [id])
+  recipients CampaignRecipient[]
+  messages   Message[]
+
+  @@map("campaigns")
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model CampaignRecipient {
+  id               String        @id @default(uuid())
+  campaignId       String        @map("campaign_id")
+  salonId          String        @map("salon_id")
+  clientId         String        @map("client_id")
+  templateSnapshot String?       @map("template_snapshot")
+  messageStatus    MessageStatus @default(PENDING) @map("message_status")
+  sentAt           DateTime?     @map("sent_at")
+  deliveredAt      DateTime?     @map("delivered_at")
+  repliedAt        DateTime?     @map("replied_at")
+  convertedAt      DateTime?     @map("converted_at")
+  conversionValue  Decimal       @default(0) @map("conversion_value")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  client   Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("campaign_recipients")
+}
+
+model Automation {
+  id          String      @id @default(uuid())
+  salonId     String      @map("salon_id")
+  name        String
+  triggerType TriggerType @map("trigger_type")
+  isActive    Boolean     @default(false) @map("is_active")
+  rulesJson   Json?       @map("rules_json")
+  templateId  String?     @map("template_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  salon    Salon     @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  template Template? @relation(fields: [templateId], references: [id])
+
+  @@map("automations")
+}
+
+enum TriggerType {
+  AT_RISK
+  BIRTHDAY
+  POST_VISIT
+  WINBACK
+  MANUAL_RULE
+}
+
+model Message {
+  id                String        @id @default(uuid())
+  salonId           String        @map("salon_id")
+  clientId          String        @map("client_id")
+  campaignId        String?       @map("campaign_id")
+  automationId      String?       @map("automation_id")
+  templateId        String?       @map("template_id")
+  provider          String        @default("mock")
+  direction         String        @default("outbound")
+  content           String
+  externalMessageId String?       @map("external_message_id")
+  status            MessageStatus @default(PENDING)
+  sentAt            DateTime?     @map("sent_at")
+  deliveredAt       DateTime?     @map("delivered_at")
+  readAt            DateTime?     @map("read_at")
+  failedAt          DateTime?     @map("failed_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  salon    Salon     @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+  template Template? @relation(fields: [templateId], references: [id])
+
+  @@index([salonId])
+  @@index([clientId])
+  @@map("messages")
 }
 
 enum MessageStatus {
@@ -28,144 +321,61 @@ enum MessageStatus {
   DELIVERED
   READ
   FAILED
-  OPTED_OUT
+  REPLIED
 }
 
-// ---------------------------------------------------------------------------
-// Models
-// ---------------------------------------------------------------------------
+model Integration {
+  id         String            @id @default(uuid())
+  salonId    String            @map("salon_id")
+  type       IntegrationType
+  name       String
+  status     IntegrationStatus @default(PENDING)
+  configJson Json?             @map("config_json")
+  lastSyncAt DateTime?         @map("last_sync_at")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
 
-model Tenant {
-  id        String       @id @default(cuid())
-  name      String
-  slug      String       @unique
-  status    TenantStatus @default(ACTIVE)
-  ownerId   String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
 
-  // Relations
-  owner            User                 @relation("TenantOwner", fields: [ownerId], references: [id])
-  tenantUsers      TenantUser[]
-  messageTemplates MessageTemplate[]
-  outboundMessages OutboundMessage[]
-  webhookEvents    WebhookEvent[]
-
-  @@index([slug])
-  @@index([ownerId])
-  @@map("tenants")
+  @@map("integrations")
 }
 
-model User {
-  id         String   @id @default(cuid())
-  supabaseId String   @unique
-  email      String   @unique
-  fullName   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relations
-  tenantsOwned Tenant[]     @relation("TenantOwner")
-  ownedTenants TenantUser[]
-
-  @@index([email])
-  @@index([supabaseId])
-  @@map("users")
+enum IntegrationType {
+  CSV
+  WEBHOOK
+  API
+  WHATSAPP_UNOFFICIAL
+  WHATSAPP_OFFICIAL
+  MANUAL
 }
 
-model TenantUser {
-  id        String   @id @default(cuid())
-  tenantId  String
-  userId    String
-  invitedAt DateTime @default(now())
-  joinedAt  DateTime?
-
-  // Relations
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([tenantId, userId])
-  @@index([tenantId])
-  @@index([userId])
-  @@map("tenant_users")
+enum IntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+  PENDING
+  ERROR
 }
 
+model Import {
+  id           String       @id @default(uuid())
+  salonId      String       @map("salon_id")
+  type         String
+  filename     String?
+  status       ImportStatus @default(PROCESSING)
+  totalRows    Int          @default(0) @map("total_rows")
+  importedRows Int          @default(0) @map("imported_rows")
+  failedRows   Int          @default(0) @map("failed_rows")
+  errorLog     Json?        @map("error_log")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
 
-model MessageTemplate {
-  id        String   @id @default(cuid())
-  tenantId  String
-  name      String
-  body      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  salon Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
 
-  // Relations
-  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  outboundMessages OutboundMessage[]
-
-  @@index([tenantId])
-  @@map("message_templates")
+  @@map("imports")
 }
 
-model OutboundMessage {
-  id                String        @id @default(cuid())
-  tenantId          String
-  templateId        String?
-  toNumber          String
-  bodyRendered      String
-  status            MessageStatus @default(PENDING)
-  providerMessageId String?
-  sentAt            DateTime?
-  deliveredAt       DateTime?
-  readAt            DateTime?
-  error             String?
-  retryCount        Int           @default(0)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  // Relations
-  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  template MessageTemplate? @relation(fields: [templateId], references: [id])
-  events   MessageEvent[]
-
-  @@index([tenantId])
-  @@index([status])
-  @@index([tenantId, status])
-  @@map("outbound_messages")
-}
-
-model MessageEvent {
-  id        String   @id @default(cuid())
-  messageId String
-  eventType String
-  payload   Json     @default("{}")
-  createdAt DateTime @default(now())
-
-  // Relations
-  message OutboundMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
-  @@index([messageId])
-  @@index([messageId, eventType])
-  @@map("message_events")
-}
-
-model WebhookEvent {
-  id             String   @id @default(cuid())
-  tenantId       String?
-  source         String
-  eventType      String
-  payload        Json
-  processed      Boolean  @default(false)
-  error          String?
-  idempotencyKey String   @unique
-  createdAt      DateTime @default(now())
-
-  // Relations
-  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
-
-  @@index([tenantId])
-  @@index([source])
-  @@index([processed])
-  @@index([createdAt])
-  @@map("webhook_events")
+enum ImportStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
 }

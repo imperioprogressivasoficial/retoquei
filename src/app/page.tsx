@@ -1,15 +1,14 @@
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import LandingPage from '@/components/LandingPage'
 
-export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default async function RootPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    redirect('/messages');
-  } else {
-    redirect('/login');
+    redirect('/dashboard')
   }
+
+  return <LandingPage />
 }

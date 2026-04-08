@@ -1,0 +1,156 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Loader2, Store } from 'lucide-react'
+
+interface Salon {
+  id: string
+  name: string
+  slug: string
+  phone: string | null
+  email: string | null
+}
+
+export default function SalonPage() {
+  const [salon, setSalon] = useState<Salon | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetch('/api/salons')
+      .then((r) => r.json())
+      .then((d) => {
+        setSalon(d.salon ?? null)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    setSuccess(false)
+    const form = e.currentTarget
+    const data = {
+      name: (form.elements.namedItem('name') as HTMLInputElement).value,
+      phone: (form.elements.namedItem('phone') as HTMLInputElement).value || undefined,
+      email: (form.elements.namedItem('email') as HTMLInputElement).value || undefined,
+    }
+
+    try {
+      const method = salon ? 'PUT' : 'POST'
+      const res = await fetch('/api/salons', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const json = await res.json()
+        setError(json.error ?? 'Erro ao salvar')
+        return
+      }
+      const json = await res.json()
+      setSalon(json.salon)
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
+    } catch {
+      setError('Erro ao salvar. Tente novamente.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-[#C9A14A]" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-lg">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">Meu Salão</h1>
+        <p className="text-gray-400 mt-1">Informações do seu estabelecimento</p>
+      </div>
+
+      {!salon && (
+        <div className="mb-6 flex items-start gap-3 p-4 bg-[#C9A14A]/5 border border-[#C9A14A]/20 rounded-xl">
+          <Store className="h-5 w-5 text-[#C9A14A] shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-[#C9A14A]">Configure seu salão</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Preencha as informações abaixo para começar a usar o Retoquei.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-4 py-3 text-sm text-emerald-400">
+              Salvo com sucesso!
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white">Nome do salão *</label>
+            <input
+              name="name"
+              required
+              defaultValue={salon?.name ?? ''}
+              placeholder="Ex: Studio da Mari"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white">Telefone</label>
+            <input
+              name="phone"
+              defaultValue={salon?.phone ?? ''}
+              placeholder="(11) 99999-9999"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white">E-mail do salão</label>
+            <input
+              name="email"
+              type="email"
+              defaultValue={salon?.email ?? ''}
+              placeholder="contato@meusalao.com.br"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-[#C9A14A] text-black font-semibold py-2.5 rounded-lg text-sm hover:bg-[#b8903e] transition-colors disabled:opacity-60 mt-2"
+          >
+            {saving ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Salvando...
+              </span>
+            ) : (
+              salon ? 'Salvar alterações' : 'Criar salão'
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}

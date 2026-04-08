@@ -42,15 +42,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={inter.variable}>
-      <body className={`${inter.className} antialiased bg-white text-gray-900`}>
+      <body className={`${inter.className} antialiased bg-[#0B0B0B] text-white`}>
         {children}
         <Toaster
           position="bottom-right"
           toastOptions={{
             style: {
-              background: '#FFFFFF',
-              border: '1px solid rgba(0,0,0,0.1)',
-              color: '#1F2937',
+              background: '#1A1A1A',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#FFFFFF',
               borderRadius: '8px',
               fontSize: '13px',
             },

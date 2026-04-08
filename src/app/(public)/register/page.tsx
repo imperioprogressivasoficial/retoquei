@@ -6,20 +6,13 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Loader2, Mail, Lock, User, CheckCircle } from 'lucide-react'
-import { RetoqueiWordmark } from '@/components/ui/RetoqueiLogo'
-import { toast } from 'sonner'
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const registerSchema = z
   .object({
-    name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
     email: z.string().email('E-mail inválido'),
-    password: z
-      .string()
-      .min(8, 'Senha deve ter pelo menos 8 caracteres')
-      .regex(/[A-Z]/, 'Deve conter pelo menos uma letra maiúscula')
-      .regex(/[0-9]/, 'Deve conter pelo menos um número'),
+    password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -29,174 +22,119 @@ const registerSchema = z
 
 type RegisterForm = z.infer<typeof registerSchema>
 
-const passwordRules = [
-  { label: 'Mínimo 8 caracteres', test: (v: string) => v.length >= 8 },
-  { label: 'Uma letra maiúscula', test: (v: string) => /[A-Z]/.test(v) },
-  { label: 'Um número', test: (v: string) => /[0-9]/.test(v) },
-]
-
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = createClient()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
-  const form = useForm<RegisterForm>({
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   })
 
-  const password = form.watch('password') || ''
-
-
   async function onSubmit(data: RegisterForm) {
     setLoading(true)
+    setErrorMsg('')
     try {
       const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        options: {
-          data: { full_name: data.name },
-          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-        },
       })
-      if (error) throw error
-      toast.success('Conta criada! Redirecionando...')
-      router.push('/onboarding/1')
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao criar conta'
-      if (message.includes('already registered')) {
-        toast.error('Este e-mail já está cadastrado. Faça login.')
-      } else {
-        toast.error(message)
+      if (error) {
+        if (error.message.includes('already registered')) {
+          setErrorMsg('Este e-mail já está cadastrado. Tente fazer login.')
+        } else {
+          setErrorMsg('Erro ao criar conta. Tente novamente.')
+        }
+        return
       }
+      router.push('/onboarding')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+    <div className="flex min-h-screen items-center justify-center px-6 py-12 bg-[#0B0B0B]">
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#C9A14A]/5 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="mb-6">
-            <RetoqueiWordmark height={44} />
+          <Link href="/" className="mb-6 text-2xl font-bold text-white">
+            Retoquei
           </Link>
-          <h1 className="text-2xl font-bold">Criar sua conta</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            14 dias grátis · Sem cartão de crédito
-          </p>
+          <h1 className="text-2xl font-bold text-white">Crie sua conta</h1>
+          <p className="mt-1 text-sm text-gray-400">Grátis para sempre no plano básico</p>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Nome completo</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                {...form.register('name')}
-                type="text"
-                placeholder="Seu nome"
-                className="input-base pl-9"
-                autoComplete="name"
-              />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {errorMsg && (
+            <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
+              {errorMsg}
             </div>
-            {form.formState.errors.name && (
-              <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
-            )}
-          </div>
+          )}
 
-          {/* Email */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">E-mail</label>
+            <label className="text-sm font-medium text-white">E-mail</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <input
-                {...form.register('email')}
+                {...register('email')}
                 type="email"
                 placeholder="seu@email.com"
-                className="input-base pl-9"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-[#C9A14A]/50 focus:ring-1 focus:ring-[#C9A14A]/30 transition-colors"
                 autoComplete="email"
               />
             </div>
-            {form.formState.errors.email && (
-              <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-xs text-red-400">{errors.email.message}</p>}
           </div>
 
-          {/* Password */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Senha</label>
+            <label className="text-sm font-medium text-white">Senha</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <input
-                {...form.register('password')}
+                {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Mínimo 8 caracteres"
-                className="input-base pl-9 pr-9"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 pl-9 pr-9 text-sm focus:outline-none focus:border-[#C9A14A]/50 focus:ring-1 focus:ring-[#C9A14A]/30 transition-colors"
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {/* Password strength */}
-            {password.length > 0 && (
-              <div className="space-y-1 mt-2">
-                {passwordRules.map((rule) => (
-                  <div key={rule.label} className="flex items-center gap-2">
-                    <CheckCircle
-                      className={`h-3 w-3 transition-colors ${
-                        rule.test(password) ? 'text-emerald-400' : 'text-muted-foreground/40'
-                      }`}
-                    />
-                    <span
-                      className={`text-xs transition-colors ${
-                        rule.test(password) ? 'text-emerald-400' : 'text-muted-foreground/60'
-                      }`}
-                    >
-                      {rule.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {form.formState.errors.password && (
-              <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-xs text-red-400">{errors.password.message}</p>}
           </div>
 
-          {/* Confirm Password */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Confirmar senha</label>
+            <label className="text-sm font-medium text-white">Confirmar senha</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <input
-                {...form.register('confirmPassword')}
+                {...register('confirmPassword')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Repita a senha"
-                className="input-base pl-9"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-[#C9A14A]/50 focus:ring-1 focus:ring-[#C9A14A]/30 transition-colors"
                 autoComplete="new-password"
               />
             </div>
-            {form.formState.errors.confirmPassword && (
-              <p className="text-xs text-destructive">{form.formState.errors.confirmPassword.message}</p>
+            {errors.confirmPassword && (
+              <p className="text-xs text-red-400">{errors.confirmPassword.message}</p>
             )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full rounded-lg py-2.5 text-sm font-semibold disabled:opacity-70 mt-2"
+            className="w-full bg-[#C9A14A] text-black font-semibold rounded-lg py-2.5 text-sm hover:bg-[#b8903e] transition-colors disabled:opacity-60 mt-2"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -204,22 +142,15 @@ export default function RegisterPage() {
                 Criando conta...
               </span>
             ) : (
-              'Criar conta grátis'
+              'Criar conta'
             )}
           </button>
-
-          <p className="text-xs text-center text-muted-foreground">
-            Ao se cadastrar, você concorda com os{' '}
-            <a href="#" className="text-[#C9A14A] hover:underline">Termos de Uso</a>
-            {' '}e{' '}
-            <a href="#" className="text-[#C9A14A] hover:underline">Política de Privacidade</a>
-          </p>
         </form>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
+        <p className="mt-6 text-center text-sm text-gray-500">
           Já tem uma conta?{' '}
           <Link href="/login" className="text-[#C9A14A] hover:underline font-medium">
-            Fazer login
+            Entrar
           </Link>
         </p>
       </div>
