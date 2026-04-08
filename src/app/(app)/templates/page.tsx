@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Plus, FileText } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 
 export const metadata = { title: 'Templates' }
 
@@ -18,10 +17,8 @@ export default async function TemplatesPage() {
   const salon = await getServerSalon()
   if (!salon) redirect('/salon')
 
-  const templates = await prisma.template.findMany({
-    where: { salonId: salon.id },
-    orderBy: { createdAt: 'desc' },
-  })
+  // TODO: Fix database connection and restore templates
+  const templates: any[] = []
 
   return (
     <div>

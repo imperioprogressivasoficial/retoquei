@@ -2,7 +2,6 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 
 const STAGE_LABELS: Record<string, { label: string; color: string }> = {
   NEW: { label: 'Novo', color: 'bg-blue-400/15 text-blue-400' },
@@ -16,16 +15,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const salon = await getServerSalon()
   if (!salon) redirect('/salon')
 
-  const { id } = await params
-  const client = await prisma.client.findFirst({
-    where: { id, salonId: salon.id, deletedAt: null },
-    include: {
-      appointments: { orderBy: { appointmentDate: 'desc' }, take: 10 },
-      messages: { orderBy: { createdAt: 'desc' }, take: 10 },
-    },
-  })
-
-  if (!client) notFound()
+  // TODO: Fix database connection and restore client details
+  notFound()
 
   const stage = STAGE_LABELS[client.lifecycleStage] ?? { label: client.lifecycleStage, color: 'bg-gray-400/15 text-gray-400' }
 

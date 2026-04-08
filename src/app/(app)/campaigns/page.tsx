@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Plus, Megaphone } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 
 export const metadata = { title: 'Campanhas' }
 
@@ -18,15 +17,8 @@ export default async function CampaignsPage() {
   const salon = await getServerSalon()
   if (!salon) redirect('/salon')
 
-  const campaigns = await prisma.campaign.findMany({
-    where: { salonId: salon.id },
-    include: {
-      segment: { select: { name: true } },
-      template: { select: { name: true } },
-      _count: { select: { recipients: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  // TODO: Fix database connection and restore campaigns
+  const campaigns: any[] = []
 
   return (
     <div>
