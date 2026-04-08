@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 
 /**
  * Health check endpoint
@@ -10,36 +9,22 @@ import { prisma } from '@/lib/prisma'
  */
 export async function GET() {
   try {
-    const startTime = performance.now()
-
-    // Check database connection
-    let dbHealthy = false
-    try {
-      await prisma.$queryRaw`SELECT 1`
-      dbHealthy = true
-    } catch (err) {
-      console.error('[health] Database check failed:', err)
-    }
-
-    const duration = performance.now() - startTime
-
-    // Determine overall health
-    const status = dbHealthy ? 'healthy' : 'degraded'
-
+    // TODO: Fix database connection and restore health checks
+    // Temporarily return degraded status without checking database
     const health = {
-      status,
+      status: 'degraded',
       timestamp: new Date().toISOString(),
       version: process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
       uptime: process.uptime(),
-      responseTime: Math.round(duration),
+      responseTime: 0,
       checks: {
-        database: dbHealthy,
+        database: false,
         api: true,
       },
     }
 
     return NextResponse.json(health, {
-      status: dbHealthy ? 200 : 503,
+      status: 503,
     })
   } catch (err) {
     console.error('[health] Endpoint error:', err)
@@ -59,10 +44,5 @@ export async function GET() {
  * Same as GET but returns no body
  */
 export async function HEAD() {
-  try {
-    await prisma.$queryRaw`SELECT 1`
-    return new Response(null, { status: 200 })
-  } catch {
-    return new Response(null, { status: 503 })
-  }
+  return new Response(null, { status: 503 })
 }
