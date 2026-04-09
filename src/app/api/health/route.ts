@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
 
 /**
  * Health check endpoint
@@ -8,35 +9,31 @@ import { NextResponse } from 'next/server'
  * Returns: { status: 'healthy' | 'degraded' | 'unhealthy', timestamp, checks }
  */
 export async function GET() {
-  try {
-    // TODO: Fix database connection and restore health checks
-    // Temporarily return degraded status without checking database
-    const health = {
-      status: 'degraded',
-      timestamp: new Date().toISOString(),
-      version: process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
-      uptime: process.uptime(),
-      responseTime: 0,
-      checks: {
-        database: false,
-        api: true,
-      },
-    }
+  const start = Date.now()
+  let dbOk = false
 
-    return NextResponse.json(health, {
-      status: 503,
-    })
-  } catch (err) {
-    console.error('[health] Endpoint error:', err)
-    return NextResponse.json(
-      {
-        status: 'unhealthy',
-        timestamp: new Date().toISOString(),
-        error: 'Health check failed',
-      },
-      { status: 503 }
-    )
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    dbOk = true
+  } catch {
+    dbOk = false
   }
+
+  const health = {
+    status: dbOk ? 'healthy' : 'degraded',
+    timestamp: new Date().toISOString(),
+    version: process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
+    uptime: process.uptime(),
+    responseTime: Date.now() - start,
+    checks: {
+      database: dbOk,
+      api: true,
+    },
+  }
+
+  return NextResponse.json(health, {
+    status: dbOk ? 200 : 503,
+  })
 }
 
 /**
@@ -44,5 +41,10 @@ export async function GET() {
  * Same as GET but returns no body
  */
 export async function HEAD() {
-  return new Response(null, { status: 503 })
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return new Response(null, { status: 200 })
+  } catch {
+    return new Response(null, { status: 503 })
+  }
 }

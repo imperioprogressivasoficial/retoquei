@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ salon }, { status: 201 })
   } catch (err: any) {
     console.error('POST /api/salons error:', err)
-    return NextResponse.json({ error: 'Erro interno', debug: err?.message ?? String(err) }, { status: 500 })
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
 
