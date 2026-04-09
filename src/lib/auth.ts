@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import prisma from '@/lib/prisma'
 
 export async function getServerUser() {
   const supabase = await createClient()
@@ -10,16 +11,17 @@ export async function getServerSalon() {
   const user = await getServerUser()
   if (!user) return null
 
-  // Temporary: return mock salon to prevent database errors
-  // TODO: Fix database connection
-  return {
-    id: 'temp-' + user.id.slice(0, 8),
-    ownerUserId: user.id,
-    name: 'Meu Salão',
-    slug: 'meu-salao',
-    phone: null,
-    email: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
+  // Find salon membership for the current user
+  const member = await prisma.salonMember.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  if (!member) return null
+
+  const salon = await prisma.salon.findUnique({
+    where: { id: member.salonId },
+  })
+
+  return salon
 }

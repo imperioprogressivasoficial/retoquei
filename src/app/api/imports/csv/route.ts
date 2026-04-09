@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSalon } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, '')
@@ -78,6 +79,17 @@ export async function POST(request: Request) {
     const text = await file.text()
     const rows = parseCSV(text)
 
+    // Create import record
+    const importRecord = await prisma.import.create({
+      data: {
+        salonId: salon.id,
+        type: 'CSV',
+        filename: file.name,
+        status: 'PROCESSING',
+        totalRows: rows.length,
+      },
+    })
+
     let importedRows = 0
     let failedRows = 0
     const errorLog: string[] = []
@@ -85,6 +97,7 @@ export async function POST(request: Request) {
     for (const row of rows) {
       const name = getField(row, 'nome', 'name', 'full_name', 'nome_completo', 'cliente', 'client', 'nomecompleeto', 'nomecompleato')
       const phone = getField(row, 'telefone', 'phone', 'celular', 'whatsapp', 'fone', 'tel', 'numero', 'number')
+      const email = getField(row, 'email', 'e_mail')
 
       if (!name || !phone) {
         failedRows++
@@ -99,12 +112,52 @@ export async function POST(request: Request) {
         continue
       }
 
-      importedRows++
+      try {
+        // Upsert client: if same salon + phone already exists, update; otherwise create
+        await prisma.client.upsert({
+          where: {
+            salonId_phoneNormalized: {
+              salonId: salon.id,
+              phoneNormalized,
+            },
+          },
+          update: {
+            fullName: name,
+            phone,
+            email: email || undefined,
+            source: 'CSV',
+          },
+          create: {
+            salonId: salon.id,
+            fullName: name,
+            phone,
+            phoneNormalized,
+            email: email || null,
+            source: 'CSV',
+            lifecycleStage: 'NEW',
+          },
+        })
+        importedRows++
+      } catch (err) {
+        failedRows++
+        errorLog.push(`Erro ao importar "${name}": ${String(err)}`)
+      }
     }
+
+    // Update import record with final counts
+    await prisma.import.update({
+      where: { id: importRecord.id },
+      data: {
+        status: failedRows === rows.length ? 'FAILED' : 'COMPLETED',
+        importedRows,
+        failedRows,
+        errorLog: errorLog.length > 0 ? errorLog.slice(0, 50) : undefined,
+      },
+    })
 
     return NextResponse.json({
       success: true,
-      importId: 'imp-' + Date.now(),
+      importId: importRecord.id,
       totalRows: rows.length,
       importedRows,
       failedRows,

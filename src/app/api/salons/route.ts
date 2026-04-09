@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server'
 import { getServerUser } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
     const user = await getServerUser()
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    return NextResponse.json({ salon: null })
-  } catch {
+    // Find the user's salon through salon_members
+    const member = await prisma.salonMember.findFirst({
+      where: { userId: user.id },
+      include: { salon: true },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    return NextResponse.json({ salon: member?.salon ?? null })
+  } catch (err) {
+    console.error('GET /api/salons error:', err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
@@ -30,19 +39,32 @@ export async function POST(request: Request) {
       .replace(/^-|-$/g, '')
       + '-' + Date.now().toString(36)
 
-    const salon = {
-      id: 'salon-' + Date.now(),
-      ownerUserId: user.id,
-      name,
-      slug,
-      phone: phone ?? null,
-      email: email ?? null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
+    // Create salon and owner membership in a transaction
+    const salon = await prisma.$transaction(async (tx) => {
+      const newSalon = await tx.salon.create({
+        data: {
+          ownerUserId: user.id,
+          name,
+          slug,
+          phone: phone ?? null,
+          email: email ?? null,
+        },
+      })
+
+      await tx.salonMember.create({
+        data: {
+          salonId: newSalon.id,
+          userId: user.id,
+          role: 'OWNER',
+        },
+      })
+
+      return newSalon
+    })
 
     return NextResponse.json({ salon }, { status: 201 })
-  } catch {
+  } catch (err) {
+    console.error('POST /api/salons error:', err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
@@ -55,19 +77,26 @@ export async function PUT(request: Request) {
     const body = await request.json()
     const { name, phone, email } = body
 
-    const salon = {
-      id: 'temp-salon',
-      ownerUserId: user.id,
-      name: name || 'Meu Salão',
-      slug: 'meu-salao',
-      phone: phone ?? null,
-      email: email ?? null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
+    // Find the user's salon
+    const member = await prisma.salonMember.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    if (!member) return NextResponse.json({ error: 'Salão não encontrado' }, { status: 404 })
+
+    const salon = await prisma.salon.update({
+      where: { id: member.salonId },
+      data: {
+        name: name || undefined,
+        phone: phone ?? undefined,
+        email: email ?? undefined,
+      },
+    })
 
     return NextResponse.json({ salon })
-  } catch {
+  } catch (err) {
+    console.error('PUT /api/salons error:', err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
