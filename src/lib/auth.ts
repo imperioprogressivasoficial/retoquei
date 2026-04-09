@@ -8,20 +8,25 @@ export async function getServerUser() {
 }
 
 export async function getServerSalon() {
-  const user = await getServerUser()
-  if (!user) return null
+  try {
+    const user = await getServerUser()
+    if (!user) return null
 
-  // Find salon membership for the current user
-  const member = await prisma.salonMember.findFirst({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'asc' },
-  })
+    // Find salon membership for the current user
+    const member = await prisma.salonMember.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'asc' },
+    })
 
-  if (!member) return null
+    if (!member) return null
 
-  const salon = await prisma.salon.findUnique({
-    where: { id: member.salonId },
-  })
+    const salon = await prisma.salon.findUnique({
+      where: { id: member.salonId },
+    })
 
-  return salon
+    return salon
+  } catch (err) {
+    console.error('getServerSalon error:', err)
+    return null
+  }
 }
