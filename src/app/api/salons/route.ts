@@ -39,8 +39,19 @@ export async function POST(request: Request) {
       .replace(/^-|-$/g, '')
       + '-' + Date.now().toString(36)
 
-    // Create salon and owner membership in a transaction
+    // Create salon, profile (if missing), and owner membership in a transaction
     const salon = await prisma.$transaction(async (tx) => {
+      // Ensure profile exists (FK requirement for salon_members)
+      await tx.profile.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: {
+          userId: user.id,
+          email: user.email ?? null,
+          fullName: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
+        },
+      })
+
       const newSalon = await tx.salon.create({
         data: {
           ownerUserId: user.id,
