@@ -1,19 +1,36 @@
 import { redirect } from 'next/navigation'
 import { getServerSalon } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 
 export const metadata = { title: 'Dashboard' }
 
-// Return empty metrics to prevent database connection errors during load
 async function getMetrics(salonId: string) {
-  // TODO: Fix database connection and restore real metrics
+  const [
+    totalClients,
+    newClients,
+    recurringClients,
+    vipClients,
+    atRiskClients,
+    lostClients,
+    messagesSent,
+  ] = await Promise.all([
+    prisma.client.count({ where: { salonId, deletedAt: null } }),
+    prisma.client.count({ where: { salonId, deletedAt: null, lifecycleStage: 'NEW' } }),
+    prisma.client.count({ where: { salonId, deletedAt: null, lifecycleStage: 'RECURRING' } }),
+    prisma.client.count({ where: { salonId, deletedAt: null, lifecycleStage: 'VIP' } }),
+    prisma.client.count({ where: { salonId, deletedAt: null, lifecycleStage: 'AT_RISK' } }),
+    prisma.client.count({ where: { salonId, deletedAt: null, lifecycleStage: 'LOST' } }),
+    prisma.message.count({ where: { salonId, direction: 'outbound', status: 'SENT' } }),
+  ])
+
   return {
-    totalClients: 0,
-    newClients: 0,
-    recurringClients: 0,
-    vipClients: 0,
-    atRiskClients: 0,
-    lostClients: 0,
-    messagesSent: 0,
+    totalClients,
+    newClients,
+    recurringClients,
+    vipClients,
+    atRiskClients,
+    lostClients,
+    messagesSent,
   }
 }
 

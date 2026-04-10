@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Plus, Megaphone } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 
 export const metadata = { title: 'Campanhas' }
 
@@ -17,8 +18,15 @@ export default async function CampaignsPage() {
   const salon = await getServerSalon()
   if (!salon) redirect('/salon')
 
-  // TODO: Fix database connection and restore campaigns
-  const campaigns: any[] = []
+  const campaigns = await prisma.campaign.findMany({
+    where: { salonId: salon.id },
+    include: {
+      segment: true,
+      template: true,
+      _count: { select: { recipients: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
 
   return (
     <div>
@@ -64,8 +72,12 @@ export default async function CampaignsPage() {
               {campaigns.map((c) => {
                 const status = STATUS_LABELS[c.status] ?? { label: c.status, color: 'bg-gray-400/15 text-gray-400' }
                 return (
-                  <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-white">{c.name}</td>
+                  <tr key={c.id} className="hover:bg-white/[0.02] transition-colors cursor-pointer">
+                    <td className="px-4 py-3 text-sm font-medium text-white">
+                      <Link href={`/campaigns/${c.id}`} className="hover:text-[#C9A14A] transition-colors">
+                        {c.name}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-400">{c.segment?.name ?? '—'}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${status.color}`}>{status.label}</span>

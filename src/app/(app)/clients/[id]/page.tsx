@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 
 const STAGE_LABELS: Record<string, { label: string; color: string }> = {
   NEW: { label: 'Novo', color: 'bg-blue-400/15 text-blue-400' },
@@ -12,11 +13,25 @@ const STAGE_LABELS: Record<string, { label: string; color: string }> = {
 }
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const salon = await getServerSalon()
   if (!salon) redirect('/salon')
 
-  // TODO: Fix database connection and restore client details
-  notFound()
+  const client = await prisma.client.findFirst({
+    where: { id, salonId: salon.id, deletedAt: null },
+    include: {
+      appointments: {
+        orderBy: { appointmentDate: 'desc' },
+        take: 10,
+      },
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      },
+    },
+  })
+
+  if (!client) notFound()
 
   const stage = STAGE_LABELS[client.lifecycleStage] ?? { label: client.lifecycleStage, color: 'bg-gray-400/15 text-gray-400' }
 
@@ -75,7 +90,6 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         )}
       </div>
 
-      {/* Appointments */}
       {client.appointments.length > 0 && (
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 mb-4">
           <h2 className="text-sm font-semibold text-gray-300 mb-3">Últimos agendamentos</h2>
@@ -93,7 +107,6 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         </div>
       )}
 
-      {/* Messages */}
       {client.messages.length > 0 && (
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-300 mb-3">Últimas mensagens</h2>

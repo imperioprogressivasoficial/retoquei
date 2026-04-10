@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getServerSalon } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 import { Plus, Search } from 'lucide-react'
 
 export const metadata = { title: 'Clientes' }
@@ -25,8 +26,21 @@ export default async function ClientsPage({
   const query = params.q ?? ''
   const stage = params.stage ?? ''
 
-  // TODO: Fix database connection and restore client list
-  const clients: any[] = []
+  const clients = await prisma.client.findMany({
+    where: {
+      salonId: salon.id,
+      deletedAt: null,
+      ...(query && {
+        OR: [
+          { fullName: { contains: query, mode: 'insensitive' } },
+          { phoneNormalized: { contains: query.replace(/\D/g, '') } },
+        ],
+      }),
+      ...(stage && { lifecycleStage: stage as any }),
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+  })
 
   return (
     <div>

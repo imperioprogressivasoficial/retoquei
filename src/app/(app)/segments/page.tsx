@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Plus, Filter } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 
 export const metadata = { title: 'Segmentos' }
 
@@ -9,8 +10,27 @@ export default async function SegmentsPage() {
   const salon = await getServerSalon()
   if (!salon) redirect('/salon')
 
-  // TODO: Fix database connection and restore segments
-  const segments: any[] = []
+  const segmentsRaw = await prisma.segment.findMany({
+    where: { salonId: salon.id },
+    include: { _count: { select: { clients: true } } },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  // For DYNAMIC segments with {all: true}, count all active clients in salon
+  const totalActiveClients = await prisma.client.count({
+    where: { salonId: salon.id, deletedAt: null },
+  })
+
+  const segments = segmentsRaw.map((s) => {
+    const rules = s.rulesJson as any
+    const isAllClients = s.type === 'DYNAMIC' && rules?.all === true
+    return {
+      ...s,
+      _count: {
+        clients: isAllClients ? totalActiveClients : s._count.clients,
+      },
+    }
+  })
 
   return (
     <div>
