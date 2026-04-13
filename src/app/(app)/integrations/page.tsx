@@ -1,106 +1,194 @@
 import { redirect } from 'next/navigation'
-import { Plug, CheckCircle, XCircle, Clock } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { CheckCircle, Copy, ExternalLink } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
+import CopyWebhookUrl from './CopyWebhookUrl'
 
 export const metadata = { title: 'Integrações' }
 
-const STATUS_ICONS = {
-  CONNECTED: <CheckCircle className="h-4 w-4 text-emerald-400" />,
-  DISCONNECTED: <XCircle className="h-4 w-4 text-red-400" />,
-  PENDING: <Clock className="h-4 w-4 text-[#C9A14A]" />,
-  ERROR: <XCircle className="h-4 w-4 text-red-400" />,
+interface Integration {
+  name: string
+  slug: string
+  logo: string
+  color: string
+  description: string
+  status: 'available' | 'coming_soon'
+  type: 'lead_source' | 'channel' | 'import'
+  href?: string
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  CONNECTED: 'Conectado',
-  DISCONNECTED: 'Desconectado',
-  PENDING: 'Pendente',
-  ERROR: 'Erro',
-}
-
-const AVAILABLE = [
-  { type: 'WHATSAPP_UNOFFICIAL', name: '📱 WhatsApp via QR Code', desc: 'Conecte seu número via QR Code (igual WhatsApp Web). Grátis com Evolution API.', href: '/integrations/whatsapp', highlight: true },
-  { type: 'CSV', name: 'Importação CSV', desc: 'Importe sua base de clientes via arquivo CSV.', href: '/integrations/csv' },
-  { type: 'WHATSAPP_OFFICIAL', name: 'WhatsApp Oficial (API)', desc: 'Conecte via WhatsApp Business API para envios em escala.', href: '#' },
-  { type: 'WEBHOOK', name: 'Webhook', desc: 'Receba dados do seu sistema via webhook HTTP.', href: '#' },
-  { type: 'API', name: 'API REST', desc: 'Integre qualquer sistema via nossa API REST.', href: '#' },
+const INTEGRATIONS: Integration[] = [
+  {
+    name: 'WhatsApp',
+    slug: 'whatsapp',
+    logo: '/integrations/whatsapp.svg',
+    color: 'border-emerald-500/30 hover:border-emerald-500/50',
+    description: 'Conecte via QR Code para enviar e receber mensagens pelo WhatsApp.',
+    status: 'available',
+    type: 'channel',
+    href: '/integrations/whatsapp',
+  },
+  {
+    name: 'Trinks',
+    slug: 'trinks',
+    logo: '/integrations/trinks.svg',
+    color: 'border-orange-500/30 hover:border-orange-500/50',
+    description: 'Importe clientes e agendamentos automaticamente do Trinks via webhook.',
+    status: 'available',
+    type: 'lead_source',
+  },
+  {
+    name: 'Salão 99',
+    slug: 'salao99',
+    logo: '/integrations/salao99.svg',
+    color: 'border-pink-500/30 hover:border-pink-500/50',
+    description: 'Receba leads do Salão 99 automaticamente via webhook.',
+    status: 'available',
+    type: 'lead_source',
+  },
+  {
+    name: 'AgendZap',
+    slug: 'agendzap',
+    logo: '/integrations/agendzap.svg',
+    color: 'border-green-500/30 hover:border-green-500/50',
+    description: 'Sincronize agendamentos e clientes do AgendZap automaticamente.',
+    status: 'available',
+    type: 'lead_source',
+  },
+  {
+    name: 'Importação CSV',
+    slug: 'csv',
+    logo: '/integrations/csv.svg',
+    color: 'border-indigo-500/30 hover:border-indigo-500/50',
+    description: 'Importe sua base de clientes via arquivo CSV.',
+    status: 'available',
+    type: 'import',
+    href: '/integrations/csv',
+  },
+  {
+    name: 'Webhook Personalizado',
+    slug: 'webhook',
+    logo: '/integrations/webhook.svg',
+    color: 'border-purple-500/30 hover:border-purple-500/50',
+    description: 'Integre qualquer sistema via webhook HTTP. Envie leads para o Retoquei.',
+    status: 'available',
+    type: 'lead_source',
+  },
 ]
 
 export default async function IntegrationsPage() {
   const salon = await getServerSalon()
   if (!salon) redirect('/salon')
 
-  // TODO: Fix database connection and restore integrations
-  const integrations: any[] = []
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://retoquei-tawny.vercel.app'
+  const webhookBase = `${baseUrl}/api/webhooks/leads?salon_id=${salon.id}`
 
-  const connectedTypes = new Set(integrations.filter((i) => i.status === 'CONNECTED').map((i) => i.type))
+  const leadSources = INTEGRATIONS.filter((i) => i.type === 'lead_source')
+  const channels = INTEGRATIONS.filter((i) => i.type === 'channel')
+  const imports = INTEGRATIONS.filter((i) => i.type === 'import')
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Integrações</h1>
-        <p className="text-gray-400 mt-1">Conecte sua base de dados e canais de mensagem</p>
+        <p className="text-gray-400 mt-1">Conecte fontes de leads e canais de mensagem</p>
       </div>
 
-      {integrations.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-sm font-semibold text-gray-300 mb-3">Integrações ativas</h2>
-          <div className="space-y-2">
-            {integrations.map((i) => (
-              <div key={i.id} className="flex items-center justify-between bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
-                <div>
-                  <p className="font-medium text-white text-sm">{i.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{i.type}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {STATUS_ICONS[i.status as keyof typeof STATUS_ICONS]}
-                  <span className="text-xs text-gray-400">{STATUS_LABELS[i.status] ?? i.status}</span>
-                </div>
+      {/* Channels */}
+      <section className="mb-10">
+        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Canais de mensagem</h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          {channels.map((item) => (
+            <Link
+              key={item.slug}
+              href={item.href || '#'}
+              className={`bg-white/[0.03] border ${item.color} rounded-xl p-5 transition-colors block`}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <Image src={item.logo} alt={item.name} width={96} height={32} className="rounded" />
               </div>
-            ))}
-          </div>
+              <p className="text-sm text-gray-400">{item.description}</p>
+              <span className="inline-flex items-center gap-1 text-xs text-[#C9A14A] font-medium mt-3">
+                Configurar <ExternalLink className="h-3 w-3" />
+              </span>
+            </Link>
+          ))}
         </div>
-      )}
+      </section>
 
-      <h2 className="text-sm font-semibold text-gray-300 mb-3">Disponíveis</h2>
-      <div className="grid md:grid-cols-2 gap-4">
-        {AVAILABLE.map((item) => {
-          const isConnected = connectedTypes.has(item.type as never)
-          return (
-            <div key={item.type} className={`bg-white/[0.03] border rounded-xl p-5 transition-colors ${isConnected ? 'border-emerald-500/30' : 'border-white/[0.08] hover:border-[#C9A14A]/30'}`}>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-white">{item.name}</h3>
-                {isConnected && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-emerald-400/15 text-emerald-400">Conectado</span>
+      {/* Lead Sources */}
+      <section className="mb-10">
+        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Fontes de Leads</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {leadSources.map((item) => (
+            <div
+              key={item.slug}
+              className={`bg-white/[0.03] border ${item.color} rounded-xl p-5 transition-colors`}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <Image src={item.logo} alt={item.name} width={96} height={32} className="rounded" />
+                {item.status === 'available' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400">Disponível</span>
                 )}
               </div>
-              <p className="text-sm text-gray-400 mb-4">{item.desc}</p>
-              {!isConnected && item.href !== '#' && (
-                <a
-                  href={item.href}
-                  className="text-sm text-[#C9A14A] hover:underline font-medium"
-                >
-                  Configurar →
-                </a>
-              )}
-              {!isConnected && item.href === '#' && (
-                <span className="text-xs text-gray-600">Em breve</span>
-              )}
+              <p className="text-sm text-gray-400 mb-4">{item.description}</p>
+              <div className="bg-black/30 border border-white/[0.06] rounded-lg p-3">
+                <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">Webhook URL</p>
+                <CopyWebhookUrl url={`${webhookBase}&source=${item.slug}`} />
+              </div>
             </div>
-          )
-        })}
-      </div>
-
-      <div className="mt-6 p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl">
-        <div className="flex items-center gap-2 mb-1">
-          <Plug className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-400">Importar via CSV</span>
+          ))}
         </div>
-        <p className="text-xs text-gray-600">
-          Você pode importar clientes via CSV a qualquer momento. Acesse{' '}
-          <a href="/integrations/csv" className="text-[#C9A14A] hover:underline">Importação CSV</a>.
-        </p>
-      </div>
+      </section>
+
+      {/* Import */}
+      <section className="mb-10">
+        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Importação manual</h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          {imports.map((item) => (
+            <Link
+              key={item.slug}
+              href={item.href || '#'}
+              className={`bg-white/[0.03] border ${item.color} rounded-xl p-5 transition-colors block`}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <Image src={item.logo} alt={item.name} width={96} height={32} className="rounded" />
+              </div>
+              <p className="text-sm text-gray-400">{item.description}</p>
+              <span className="inline-flex items-center gap-1 text-xs text-[#C9A14A] font-medium mt-3">
+                Importar <ExternalLink className="h-3 w-3" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Webhook Docs */}
+      <section className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
+        <h2 className="text-sm font-semibold text-white mb-3">Como conectar via Webhook</h2>
+        <div className="space-y-3 text-sm text-gray-400">
+          <p>
+            1. Copie a URL do webhook da plataforma desejada acima.
+          </p>
+          <p>
+            2. No painel do <strong className="text-white">Trinks</strong>, <strong className="text-white">Salão 99</strong> ou <strong className="text-white">AgendZap</strong>, vá em configurações e cole a URL no campo de webhook/integração.
+          </p>
+          <p>
+            3. A cada novo agendamento ou cadastro de cliente, o lead será importado automaticamente para o Retoquei.
+          </p>
+          <div className="bg-black/30 border border-white/[0.06] rounded-lg p-4 mt-4">
+            <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Formato do JSON aceito</p>
+            <pre className="text-xs text-emerald-400 overflow-x-auto">{`{
+  "name": "Maria Silva",
+  "phone": "11987654321",
+  "email": "maria@email.com",
+  "source": "trinks",
+  "notes": "Corte + Escova"
+}`}</pre>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
