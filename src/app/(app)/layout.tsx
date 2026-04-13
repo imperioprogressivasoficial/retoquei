@@ -14,8 +14,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen bg-[#0B0B0B] text-white">
         <Sidebar userEmail={user.email} />
-        <main className="pl-60 min-h-screen">
-          <div className="p-8">
+        <main className="lg:pl-60 min-h-screen pt-14 lg:pt-0">
+          <div className="p-4 sm:p-6 lg:p-8">
             {children}
           </div>
         </main>

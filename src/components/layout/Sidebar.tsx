@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -14,6 +16,8 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  Menu,
+  X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSalon } from '@/hooks/useSalon'
@@ -38,6 +42,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { salon } = useSalon()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   async function handleLogout() {
     const supabase = createClient()
@@ -46,13 +51,11 @@ export default function Sidebar({ userEmail }: SidebarProps) {
     router.refresh()
   }
 
-  return (
-    <aside className="fixed inset-y-0 left-0 z-40 flex flex-col w-60 bg-[#0F0F0F] border-r border-white/[0.08]">
+  const sidebarContent = (
+    <>
       {/* Logo / Salon name */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/[0.08]">
-        <div className="w-8 h-8 rounded-lg bg-[#C9A14A]/20 flex items-center justify-center shrink-0">
-          <span className="text-[#C9A14A] text-xs font-bold">R</span>
-        </div>
+        <Image src="/logo-retoquei.svg" alt="Retoquei" width={32} height={32} className="shrink-0" />
         <div className="overflow-hidden">
           <p className="text-sm font-semibold text-white truncate">
             {salon?.name ?? 'Retoquei'}
@@ -70,6 +73,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 active
                   ? 'bg-[#C9A14A]/15 text-[#C9A14A]'
@@ -102,6 +106,48 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           <span>Sair</span>
         </button>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-[#0F0F0F] border-b border-white/[0.08] flex items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <Image src="/logo-retoquei.svg" alt="Retoquei" width={28} height={28} />
+          <span className="text-sm font-semibold text-white truncate">
+            {salon?.name ?? 'Retoquei'}
+          </span>
+        </div>
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="p-2 text-gray-400 hover:text-white transition-colors"
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/60"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile slide-out sidebar */}
+      <aside
+        className={`lg:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#0F0F0F] border-r border-white/[0.08] transform transition-transform duration-200 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        } pt-14`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col w-60 bg-[#0F0F0F] border-r border-white/[0.08]">
+        {sidebarContent}
+      </aside>
+    </>
   )
 }
