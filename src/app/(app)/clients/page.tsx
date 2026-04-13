@@ -3,16 +3,9 @@ import { redirect } from 'next/navigation'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { Plus, Search } from 'lucide-react'
+import ClientsList from './ClientsList'
 
 export const metadata = { title: 'Clientes' }
-
-const STAGE_LABELS: Record<string, { label: string; color: string }> = {
-  NEW: { label: 'Novo', color: 'bg-blue-400/15 text-blue-400' },
-  RECURRING: { label: 'Recorrente', color: 'bg-emerald-400/15 text-emerald-400' },
-  VIP: { label: 'VIP', color: 'bg-[#C9A14A]/15 text-[#C9A14A]' },
-  AT_RISK: { label: 'Em risco', color: 'bg-orange-400/15 text-orange-400' },
-  LOST: { label: 'Perdido', color: 'bg-red-400/15 text-red-400' },
-}
 
 export default async function ClientsPage({
   searchParams,
@@ -42,6 +35,16 @@ export default async function ClientsPage({
     take: 200,
   })
 
+  const data = clients.map((c) => ({
+    id: c.id,
+    fullName: c.fullName,
+    phone: c.phone,
+    lifecycleStage: c.lifecycleStage,
+    visitCount: c.visitCount,
+    lastVisitAt: c.lastVisitAt?.toISOString() ?? null,
+    archivedAt: c.archivedAt?.toISOString() ?? null,
+  }))
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -58,7 +61,6 @@ export default async function ClientsPage({
         </Link>
       </div>
 
-      {/* Filters */}
       <form className="flex gap-3 mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -89,57 +91,7 @@ export default async function ClientsPage({
         </button>
       </form>
 
-      {/* Table */}
-      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-white/[0.08]">
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Nome</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Telefone</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Estágio</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Visitas</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Última visita</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/[0.04]">
-            {clients.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center py-12 text-gray-500 text-sm">
-                  Nenhum cliente encontrado.{' '}
-                  <Link href="/clients/new" className="text-[#C9A14A] hover:underline">
-                    Adicionar o primeiro
-                  </Link>
-                </td>
-              </tr>
-            ) : (
-              clients.map((client) => {
-                const stage = STAGE_LABELS[client.lifecycleStage] ?? { label: client.lifecycleStage, color: 'bg-gray-400/15 text-gray-400' }
-                return (
-                  <tr key={client.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3">
-                      <Link href={`/clients/${client.id}`} className="text-white hover:text-[#C9A14A] transition-colors font-medium text-sm">
-                        {client.fullName}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-400">{client.phone}</td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color}`}>
-                        {stage.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-400">{client.visitCount}</td>
-                    <td className="px-4 py-3 text-sm text-gray-400">
-                      {client.lastVisitAt
-                        ? new Date(client.lastVisitAt).toLocaleDateString('pt-BR')
-                        : '—'}
-                    </td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ClientsList clients={data} />
     </div>
   )
 }

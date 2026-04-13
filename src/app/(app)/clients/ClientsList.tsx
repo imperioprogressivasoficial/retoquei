@@ -1,0 +1,154 @@
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Pencil, Trash2, Archive, Loader2 } from 'lucide-react'
+
+interface Client {
+  id: string
+  fullName: string
+  phone: string
+  lifecycleStage: string
+  visitCount: number
+  lastVisitAt: string | null
+  archivedAt: string | null
+}
+
+const STAGE_LABELS: Record<string, { label: string; color: string }> = {
+  NEW: { label: 'Novo', color: 'bg-blue-400/15 text-blue-400' },
+  RECURRING: { label: 'Recorrente', color: 'bg-emerald-400/15 text-emerald-400' },
+  VIP: { label: 'VIP', color: 'bg-[#C9A14A]/15 text-[#C9A14A]' },
+  AT_RISK: { label: 'Em risco', color: 'bg-orange-400/15 text-orange-400' },
+  LOST: { label: 'Perdido', color: 'bg-red-400/15 text-red-400' },
+}
+
+export default function ClientsList({ clients }: { clients: Client[] }) {
+  const router = useRouter()
+  const [menu, setMenu] = useState<{ x: number; y: number; item: Client } | null>(null)
+  const [loading, setLoading] = useState<string | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menu) return
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(null)
+    }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(null) }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc) }
+  }, [menu])
+
+  function onContext(e: React.MouseEvent, item: Client) {
+    e.preventDefault()
+    setMenu({ x: e.clientX, y: e.clientY, item })
+  }
+
+  async function handleDelete() {
+    if (!menu) return
+    if (!window.confirm('Tem certeza que deseja apagar este cliente?')) return
+    setLoading('delete')
+    await fetch(`/api/clients/${menu.item.id}`, { method: 'DELETE' })
+    setMenu(null); setLoading(null); router.refresh()
+  }
+
+  async function handleArchive() {
+    if (!menu) return
+    setLoading('archive')
+    const action = menu.item.archivedAt ? 'unarchive' : 'archive'
+    await fetch(`/api/clients/${menu.item.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    })
+    setMenu(null); setLoading(null); router.refresh()
+  }
+
+  return (
+    <>
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-white/[0.08]">
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Nome</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Telefone</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Estágio</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Visitas</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Última visita</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.04]">
+            {clients.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-12 text-gray-500 text-sm">
+                  Nenhum cliente encontrado.{' '}
+                  <Link href="/clients/new" className="text-[#C9A14A] hover:underline">Adicionar o primeiro</Link>
+                </td>
+              </tr>
+            ) : (
+              clients.map((client) => {
+                const stage = STAGE_LABELS[client.lifecycleStage] ?? { label: client.lifecycleStage, color: 'bg-gray-400/15 text-gray-400' }
+                return (
+                  <tr
+                    key={client.id}
+                    onContextMenu={(e) => onContext(e, client)}
+                    className={`hover:bg-white/[0.02] transition-colors cursor-pointer ${client.archivedAt ? 'opacity-50' : ''}`}
+                  >
+                    <td className="px-4 py-3">
+                      <Link href={`/clients/${client.id}`} className="text-white hover:text-[#C9A14A] transition-colors font-medium text-sm">
+                        {client.fullName}
+                      </Link>
+                      {client.archivedAt && <span className="ml-2 text-xs text-gray-500">(arquivado)</span>}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-400">{client.phone}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color}`}>{stage.label}</span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-400">{client.visitCount}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400">
+                      {client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {menu && (
+        <div
+          ref={menuRef}
+          className="fixed z-50 min-w-[170px] bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl py-1 text-sm"
+          style={{ left: menu.x, top: menu.y }}
+        >
+          <Link
+            href={`/clients/${menu.item.id}`}
+            onClick={() => setMenu(null)}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <Pencil className="h-3.5 w-3.5" /> Editar
+          </Link>
+          <button
+            onClick={handleArchive}
+            disabled={loading === 'archive'}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-gray-300 hover:bg-white/10 hover:text-white transition-colors text-left disabled:opacity-50"
+          >
+            {loading === 'archive' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Archive className="h-3.5 w-3.5" />}
+            {menu.item.archivedAt ? 'Desarquivar' : 'Arquivar'}
+          </button>
+          <div className="border-t border-white/[0.06] my-1" />
+          <button
+            onClick={handleDelete}
+            disabled={loading === 'delete'}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-red-400 hover:bg-red-500/10 transition-colors text-left disabled:opacity-50"
+          >
+            {loading === 'delete' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+            Apagar
+          </button>
+        </div>
+      )}
+    </>
+  )
+}

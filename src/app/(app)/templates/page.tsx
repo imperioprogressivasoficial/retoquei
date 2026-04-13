@@ -3,16 +3,9 @@ import { redirect } from 'next/navigation'
 import { Plus, FileText } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import TemplatesList from './TemplatesList'
 
 export const metadata = { title: 'Templates' }
-
-const CATEGORY_LABELS: Record<string, string> = {
-  REACTIVATION: 'Reativação',
-  POST_VISIT: 'Pós-visita',
-  BIRTHDAY: 'Aniversário',
-  UPSELL: 'Upsell',
-  CUSTOM: 'Personalizado',
-}
 
 export default async function TemplatesPage() {
   const salon = await getServerSalon()
@@ -22,6 +15,15 @@ export default async function TemplatesPage() {
     where: { salonId: salon.id },
     orderBy: { createdAt: 'desc' },
   })
+
+  const data = templates.map((t) => ({
+    id: t.id,
+    name: t.name,
+    category: t.category,
+    content: t.content,
+    archivedAt: t.archivedAt?.toISOString() ?? null,
+    createdAt: t.createdAt.toISOString(),
+  }))
 
   return (
     <div>
@@ -51,24 +53,7 @@ export default async function TemplatesPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          {templates.map((t) => (
-            <div key={t.id} className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 hover:border-[#C9A14A]/30 transition-colors">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold text-white">{t.name}</h3>
-                  <span className="text-xs text-gray-500 mt-0.5">
-                    {CATEGORY_LABELS[t.category] ?? t.category}
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-400 line-clamp-3">{t.content}</p>
-              <p className="text-xs text-gray-600 mt-3">
-                {new Date(t.createdAt).toLocaleDateString('pt-BR')}
-              </p>
-            </div>
-          ))}
-        </div>
+        <TemplatesList templates={data} />
       )}
     </div>
   )

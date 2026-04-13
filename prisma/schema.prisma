@@ -86,6 +86,7 @@ model Client {
   lifecycleStage      LifecycleStage @default(NEW) @map("lifecycle_stage")
   notes               String?
   whatsappOptIn       Boolean        @default(true) @map("whatsapp_opt_in")
+  archivedAt          DateTime?      @map("archived_at")
   deletedAt           DateTime?      @map("deleted_at")
   createdAt           DateTime       @default(now()) @map("created_at")
   updatedAt           DateTime       @updatedAt @map("updated_at")
@@ -155,6 +156,7 @@ model Segment {
   description String?
   type        SegmentType @default(DYNAMIC)
   rulesJson   Json?       @map("rules_json")
+  archivedAt  DateTime?   @map("archived_at")
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
 
@@ -185,13 +187,14 @@ model ClientSegment {
 }
 
 model Template {
-  id        String           @id @default(uuid())
-  salonId   String           @map("salon_id")
-  name      String
-  category  TemplateCategory @default(CUSTOM)
-  content   String
-  createdAt DateTime         @default(now()) @map("created_at")
-  updatedAt DateTime         @updatedAt @map("updated_at")
+  id         String           @id @default(uuid())
+  salonId    String           @map("salon_id")
+  name       String
+  category   TemplateCategory @default(CUSTOM)
+  content    String
+  archivedAt DateTime?        @map("archived_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
 
   salon       Salon        @relation(fields: [salonId], references: [id], onDelete: Cascade)
   campaigns   Campaign[]
@@ -219,6 +222,7 @@ model Campaign {
   scheduledAt DateTime?      @map("scheduled_at")
   startedAt   DateTime?      @map("started_at")
   finishedAt  DateTime?      @map("finished_at")
+  archivedAt  DateTime?      @map("archived_at")
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
 
@@ -268,6 +272,7 @@ model Automation {
   isActive    Boolean     @default(false) @map("is_active")
   rulesJson   Json?       @map("rules_json")
   templateId  String?     @map("template_id")
+  archivedAt  DateTime?   @map("archived_at")
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
 

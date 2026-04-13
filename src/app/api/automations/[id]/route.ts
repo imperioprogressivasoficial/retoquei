@@ -8,17 +8,15 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const salon = await getServerSalon()
     if (!salon) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const campaign = await prisma.campaign.findFirst({ where: { id, salonId: salon.id } })
-    if (!campaign) return NextResponse.json({ error: 'Campanha não encontrada' }, { status: 404 })
+    const automation = await prisma.automation.findFirst({ where: { id, salonId: salon.id } })
+    if (!automation) return NextResponse.json({ error: 'Automação não encontrada' }, { status: 404 })
 
-    await prisma.message.deleteMany({ where: { campaignId: id } })
-    await prisma.campaignRecipient.deleteMany({ where: { campaignId: id } })
-    await prisma.campaign.delete({ where: { id } })
+    await prisma.automation.delete({ where: { id } })
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('DELETE /api/campaigns/[id] error:', err)
-    return NextResponse.json({ error: 'Erro ao excluir campanha' }, { status: 500 })
+    console.error('DELETE /api/automations/[id] error:', err)
+    return NextResponse.json({ error: 'Erro ao excluir automação' }, { status: 500 })
   }
 }
 
@@ -29,18 +27,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!salon) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
     const body = await req.json()
-    const campaign = await prisma.campaign.findFirst({ where: { id, salonId: salon.id } })
-    if (!campaign) return NextResponse.json({ error: 'Campanha não encontrada' }, { status: 404 })
+    const automation = await prisma.automation.findFirst({ where: { id, salonId: salon.id } })
+    if (!automation) return NextResponse.json({ error: 'Automação não encontrada' }, { status: 404 })
 
     if (body.action === 'archive') {
-      await prisma.campaign.update({ where: { id }, data: { archivedAt: new Date() } })
+      await prisma.automation.update({ where: { id }, data: { archivedAt: new Date() } })
     } else if (body.action === 'unarchive') {
-      await prisma.campaign.update({ where: { id }, data: { archivedAt: null } })
+      await prisma.automation.update({ where: { id }, data: { archivedAt: null } })
     }
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('PATCH /api/campaigns/[id] error:', err)
+    console.error('PATCH /api/automations/[id] error:', err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
