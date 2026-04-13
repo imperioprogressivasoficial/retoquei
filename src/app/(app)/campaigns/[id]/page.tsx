@@ -50,15 +50,31 @@ export default async function CampaignDetailPage({
 
   // Count target audience size for preview (DRAFT campaigns have no recipients yet)
   let targetCount = campaign.recipients.length
-  if (targetCount === 0 && campaign.segment) {
-    const rules = campaign.segment.rulesJson as any
-    if (campaign.segment.type === 'DYNAMIC' && rules?.all === true) {
+  if (targetCount === 0) {
+    if (campaign.segment) {
+      const rules = campaign.segment.rulesJson as any
+      const isDynamicAll = campaign.segment.type === 'DYNAMIC' && rules?.all === true
+
+      if (isDynamicAll) {
+        targetCount = await prisma.client.count({
+          where: { salonId: salon.id, deletedAt: null, whatsappOptIn: true },
+        })
+      } else {
+        // MANUAL or DYNAMIC with specific rules — check linked clients
+        targetCount = await prisma.clientSegment.count({
+          where: { segmentId: campaign.segment.id },
+        })
+        // If MANUAL segment has no links, fall back to all active clients
+        if (targetCount === 0) {
+          targetCount = await prisma.client.count({
+            where: { salonId: salon.id, deletedAt: null, whatsappOptIn: true },
+          })
+        }
+      }
+    } else {
+      // No segment — target all active opted-in clients
       targetCount = await prisma.client.count({
         where: { salonId: salon.id, deletedAt: null, whatsappOptIn: true },
-      })
-    } else {
-      targetCount = await prisma.clientSegment.count({
-        where: { segmentId: campaign.segment.id },
       })
     }
   }

@@ -56,6 +56,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           select: { id: true, fullName: true, phone: true },
         })
       } else {
+        // Check for linked clients in the segment
         const links = await prisma.clientSegment.findMany({
           where: { segmentId: campaign.segment.id },
           include: {
@@ -65,6 +66,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         clients = links
           .filter((l) => l.client && !l.client.deletedAt && l.client.whatsappOptIn)
           .map((l) => ({ id: l.client.id, fullName: l.client.fullName, phone: l.client.phone }))
+
+        // If segment has no linked clients, fall back to all active clients
+        if (clients.length === 0) {
+          clients = await prisma.client.findMany({
+            where: { salonId: salon.id, deletedAt: null, whatsappOptIn: true },
+            select: { id: true, fullName: true, phone: true },
+          })
+        }
       }
     } else {
       clients = await prisma.client.findMany({
