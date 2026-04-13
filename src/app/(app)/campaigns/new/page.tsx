@@ -41,12 +41,18 @@ export default function NewCampaignPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
+      const json = await res.json()
       if (!res.ok) {
-        const json = await res.json()
         setError(json.error ?? 'Erro ao criar campanha')
         return
       }
-      router.push('/campaigns')
+      // Redirect to detail page so user can dispatch immediately
+      const campaignId = json.campaign?.id
+      if (campaignId) {
+        router.push(`/campaigns/${campaignId}`)
+      } else {
+        router.push('/campaigns')
+      }
     } catch {
       setError('Erro ao criar campanha. Tente novamente.')
     } finally {

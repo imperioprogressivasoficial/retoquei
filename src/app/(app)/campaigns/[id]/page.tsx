@@ -4,6 +4,7 @@ import { ArrowLeft, Users, FileText, Send } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import DispatchButton from './DispatchButton'
+import DeleteButton from './DeleteButton'
 
 export const metadata = { title: 'Detalhes da campanha' }
 
@@ -104,9 +105,12 @@ export default async function CampaignDetailPage({
             </p>
           </div>
 
-          {canDispatch && (
-            <DispatchButton campaignId={campaign.id} targetCount={targetCount} />
-          )}
+          <div className="flex items-center gap-3">
+            <DeleteButton campaignId={campaign.id} />
+            {canDispatch && (
+              <DispatchButton campaignId={campaign.id} targetCount={targetCount} />
+            )}
+          </div>
         </div>
       </div>
 
