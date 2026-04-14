@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import Image from 'next/image'
 import { Loader2, Mail, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -44,8 +45,8 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center px-6 py-12 bg-[#0B0B0B]">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="mb-6 text-2xl font-bold text-white">
-            Retoquei
+          <Link href="/" className="mb-4">
+            <Image src="/logo-retoquei.png" alt="Retoquei" width={64} height={64} />
           </Link>
           <h1 className="text-2xl font-bold text-white">Recuperar senha</h1>
           <p className="mt-1 text-sm text-gray-400 text-center">

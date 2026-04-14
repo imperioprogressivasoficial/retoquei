@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import Image from 'next/image'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -63,8 +64,8 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="mb-6 text-2xl font-bold text-white">
-            Retoquei
+          <Link href="/" className="mb-4">
+            <Image src="/logo-retoquei.png" alt="Retoquei" width={64} height={64} />
           </Link>
           <h1 className="text-2xl font-bold text-white">Crie sua conta</h1>
           <p className="mt-1 text-sm text-gray-400">Grátis para sempre no plano básico</p>
