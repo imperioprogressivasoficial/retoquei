@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { Users, Send, Megaphone, AlertTriangle, TrendingUp, UserPlus, UserMinus, Crown } from 'lucide-react'
+import { Users, Send, Megaphone, AlertTriangle, TrendingUp, UserPlus, UserMinus, Crown, FileText, Plug } from 'lucide-react'
 
 export const metadata = { title: 'Dashboard' }
 
