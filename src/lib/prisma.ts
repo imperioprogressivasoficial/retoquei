@@ -17,18 +17,13 @@ declare global {
  * necessary but harmless.
  */
 function createPrismaClient(): PrismaClient {
-  const client = new PrismaClient({
+  return new PrismaClient({
     log:
       process.env.NODE_ENV === 'development'
         ? ['error', 'warn']
         : ['error'],
     errorFormat: 'minimal',
   })
-
-  // Eagerly connect to avoid cold-start connection delay on first query
-  client.$connect().catch(() => {})
-
-  return client
 }
 
 const prisma = globalThis.__prisma ?? createPrismaClient()
