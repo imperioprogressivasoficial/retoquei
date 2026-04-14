@@ -62,7 +62,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="mb-4">
-            <Image src="/nova-logo-retoquei.svg" alt="Retoquei" width={288} height={288} />
+            <Image src="/nova-logo-retoquei.svg" alt="Retoquei" width={100} height={100} />
           </Link>
           <h1 className="text-2xl font-bold text-white">Bem-vindo de volta</h1>
           <p className="mt-1 text-sm text-gray-400">Entre na sua conta para continuar</p>

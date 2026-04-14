@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Zap } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
@@ -32,6 +33,12 @@ export default async function AutomationsPage() {
           <h1 className="text-2xl font-bold text-white">Automações</h1>
           <p className="text-gray-400 mt-1">{automations.length} automações configuradas</p>
         </div>
+        <Link
+          href="/automations/new"
+          className="bg-[#C9A14A] text-black font-semibold px-4 py-2.5 rounded-lg text-sm hover:bg-[#b8903e] transition-colors flex items-center gap-2"
+        >
+          <Zap className="h-4 w-4" /> Nova automação
+        </Link>
       </div>
 
       {automations.length === 0 ? (
@@ -46,12 +53,6 @@ export default async function AutomationsPage() {
         <AutomationsList automations={data} />
       )}
 
-      <div className="mt-8 p-5 bg-[#C9A14A]/5 border border-[#C9A14A]/20 rounded-xl">
-        <p className="text-sm text-[#C9A14A] font-medium mb-1">Em breve</p>
-        <p className="text-sm text-gray-400">
-          O criador visual de automações estará disponível em breve. Por enquanto, as automações podem ser configuradas via API.
-        </p>
-      </div>
     </div>
   )
 }

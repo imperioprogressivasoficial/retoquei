@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Store } from 'lucide-react'
+import { Loader2, Building2 } from 'lucide-react'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -26,13 +26,13 @@ export default function OnboardingPage() {
       })
       if (!res.ok) {
         const json = await res.json()
-        setError(json.error ?? 'Erro ao criar salão')
+        setError(json.error ?? 'Erro ao criar empresa')
         return
       }
       router.push('/dashboard')
       router.refresh()
     } catch {
-      setError('Erro ao criar salão. Tente novamente.')
+      setError('Erro ao criar empresa. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -43,11 +43,11 @@ export default function OnboardingPage() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-2xl bg-[#C9A14A]/20 flex items-center justify-center mb-4">
-            <Store className="h-6 w-6 text-[#C9A14A]" />
+            <Building2 className="h-6 w-6 text-[#C9A14A]" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Configure seu salão</h1>
+          <h1 className="text-2xl font-bold text-white">Configure sua empresa</h1>
           <p className="mt-2 text-sm text-gray-400 text-center">
-            Estamos quase lá! Dê um nome ao seu estabelecimento para começar.
+            Estamos quase lá! Dê um nome ao seu negócio para começar.
           </p>
         </div>
 
@@ -60,17 +60,17 @@ export default function OnboardingPage() {
             )}
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white">Nome do salão *</label>
+              <label className="text-sm font-medium text-white">Nome da empresa *</label>
               <input
                 name="name"
                 required
-                placeholder="Ex: Studio da Mari"
+                placeholder="Ex: Império Progressivas"
                 className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white">Telefone do salão</label>
+              <label className="text-sm font-medium text-white">Telefone da empresa</label>
               <input
                 name="phone"
                 placeholder="(11) 99999-9999"
@@ -89,7 +89,7 @@ export default function OnboardingPage() {
                   Criando...
                 </span>
               ) : (
-                'Criar meu salão →'
+                'Criar minha empresa →'
               )}
             </button>
           </form>
