@@ -65,7 +65,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="mb-4">
-            <Image src="/logo-retoquei.png" alt="Retoquei" width={288} height={288} />
+            <Image src="/nova-logo-retoquei.svg" alt="Retoquei" width={288} height={288} />
           </Link>
           <h1 className="text-2xl font-bold text-white">Crie sua conta</h1>
           <p className="mt-1 text-sm text-gray-400">Grátis para sempre no plano básico</p>
