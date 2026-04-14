@@ -55,7 +55,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
     <>
       {/* Logo / Salon name */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/[0.08]">
-        <Image src="/logo-retoquei.png" alt="Retoquei" width={32} height={32} className="shrink-0" />
+        <Image src="/logo-retoquei.png" alt="Retoquei" width={44} height={44} className="shrink-0" />
         <div className="overflow-hidden">
           <p className="text-sm font-semibold text-white truncate">
             {salon?.name ?? 'Retoquei'}
@@ -114,7 +114,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-[#0F0F0F] border-b border-white/[0.08] flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <Image src="/logo-retoquei.png" alt="Retoquei" width={28} height={28} />
+          <Image src="/logo-retoquei.png" alt="Retoquei" width={36} height={36} />
           <span className="text-sm font-semibold text-white truncate">
             {salon?.name ?? 'Retoquei'}
           </span>
