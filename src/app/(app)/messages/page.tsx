@@ -176,7 +176,7 @@ export default function MessagesPage() {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <p className="font-medium text-gray-900">{msg.toNumber}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-400">
                       {new Date(msg.createdAt).toLocaleString('pt-BR')}
                     </p>
                   </div>

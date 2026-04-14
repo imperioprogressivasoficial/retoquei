@@ -50,9 +50,9 @@ export default async function CampaignsPage() {
 
       {campaigns.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white/[0.03] border border-white/[0.08] rounded-xl">
-          <Megaphone className="h-10 w-10 text-gray-600 mb-3" />
+          <Megaphone className="h-10 w-10 text-gray-400 mb-3" />
           <p className="text-gray-400 mb-2">Nenhuma campanha criada ainda</p>
-          <p className="text-xs text-gray-600 mb-4">Campanhas enviam mensagens para segmentos de clientes</p>
+          <p className="text-xs text-gray-400 mb-4">Campanhas enviam mensagens para segmentos de clientes</p>
           <Link
             href="/campaigns/new"
             className="bg-[#C9A14A] text-black font-semibold px-4 py-2 rounded-lg text-sm hover:bg-[#b8903e] transition-colors"

@@ -1,14 +1,35 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
-export default function NewClientPage() {
+interface ClientData {
+  id: string
+  fullName: string
+  phone: string
+  email: string | null
+  notes: string | null
+}
+
+export default function EditClientPage() {
   const router = useRouter()
+  const params = useParams()
+  const clientId = params.id as string
+
+  const [client, setClient] = useState<ClientData | null>(null)
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetch(`/api/clients/${clientId}`)
+      .then((r) => r.json())
+      .then((data) => setClient(data.client ?? data))
+      .catch(() => setError('Erro ao carregar cliente'))
+      .finally(() => setFetching(false))
+  }, [clientId])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -22,32 +43,51 @@ export default function NewClientPage() {
       notes: (form.elements.namedItem('notes') as HTMLTextAreaElement).value || undefined,
     }
     try {
-      const res = await fetch('/api/clients', {
-        method: 'POST',
+      const res = await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
       if (!res.ok) {
         const json = await res.json()
-        setError(json.error ?? 'Erro ao criar cliente')
+        setError(json.error ?? 'Erro ao salvar')
         return
       }
-      const json = await res.json()
-      router.push(`/clients/${json.client.id}`)
+      router.push(`/clients/${clientId}`)
+      router.refresh()
     } catch {
-      setError('Erro ao criar cliente. Tente novamente.')
+      setError('Erro ao salvar. Tente novamente.')
     } finally {
       setLoading(false)
     }
   }
 
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-[#C9A14A]" />
+      </div>
+    )
+  }
+
+  if (!client) {
+    return (
+      <div className="max-w-lg">
+        <p className="text-gray-400">Cliente não encontrado.</p>
+        <Link href="/clients" className="text-[#C9A14A] hover:underline text-sm mt-2 inline-block">
+          Voltar
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-lg">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/clients" className="text-gray-400 hover:text-white transition-colors">
+        <Link href={`/clients/${clientId}`} className="text-gray-400 hover:text-white transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-white">Novo cliente</h1>
+        <h1 className="text-2xl font-bold text-white">Editar cliente</h1>
       </div>
 
       <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6">
@@ -63,7 +103,7 @@ export default function NewClientPage() {
             <input
               name="fullName"
               required
-              placeholder="João Silva"
+              defaultValue={client.fullName}
               className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
             />
           </div>
@@ -73,7 +113,7 @@ export default function NewClientPage() {
             <input
               name="phone"
               required
-              placeholder="(11) 99999-9999"
+              defaultValue={client.phone}
               className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
             />
           </div>
@@ -83,6 +123,7 @@ export default function NewClientPage() {
             <input
               name="email"
               type="email"
+              defaultValue={client.email ?? ''}
               placeholder="joao@email.com"
               className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
             />
@@ -93,6 +134,7 @@ export default function NewClientPage() {
             <textarea
               name="notes"
               rows={3}
+              defaultValue={client.notes ?? ''}
               placeholder="Anotações sobre o cliente..."
               className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors resize-none"
             />
@@ -100,7 +142,7 @@ export default function NewClientPage() {
 
           <div className="flex gap-3 pt-2">
             <Link
-              href="/clients"
+              href={`/clients/${clientId}`}
               className="flex-1 text-center border border-white/10 text-gray-400 hover:text-white py-2.5 rounded-lg text-sm transition-colors"
             >
               Cancelar
@@ -116,7 +158,7 @@ export default function NewClientPage() {
                   Salvando...
                 </span>
               ) : (
-                'Salvar cliente'
+                'Salvar alterações'
               )}
             </button>
           </div>

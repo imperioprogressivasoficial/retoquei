@@ -30,8 +30,7 @@ const navItems = [
   { href: '/campaigns', label: 'Campanhas', icon: Megaphone },
   { href: '/templates', label: 'Templates', icon: FileText },
   { href: '/integrations', label: 'Integrações', icon: Plug },
-  { href: '/salon', label: 'Meu Salão', icon: Store },
-  { href: '/settings', label: 'Configurações', icon: Settings },
+  { href: '/salon', label: 'Configurações', icon: Settings },
 ]
 
 interface SidebarProps {

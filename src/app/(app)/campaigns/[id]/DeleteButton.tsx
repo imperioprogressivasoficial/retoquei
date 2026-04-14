@@ -3,17 +3,23 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function DeleteButton({ campaignId }: { campaignId: string }) {
   const router = useRouter()
+  const confirm = useConfirm()
   const [deleting, setDeleting] = useState(false)
 
   async function handleDelete() {
     if (deleting) return
-    const confirmed = window.confirm(
-      'Tem certeza que deseja excluir esta campanha?\n\nEsta ação não pode ser desfeita.',
-    )
-    if (!confirmed) return
+    const ok = await confirm({
+      title: 'Excluir campanha?',
+      description: 'Esta ação não pode ser desfeita. Todas as mensagens e destinatários serão removidos.',
+      confirmLabel: 'Excluir',
+      variant: 'danger',
+    })
+    if (!ok) return
 
     setDeleting(true)
     try {
@@ -22,14 +28,14 @@ export default function DeleteButton({ campaignId }: { campaignId: string }) {
       })
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || 'Erro ao excluir')
+        toast.error(data.error || 'Erro ao excluir')
         setDeleting(false)
         return
       }
       router.push('/campaigns')
       router.refresh()
     } catch {
-      alert('Erro de rede ao excluir')
+      toast.error('Erro de rede ao excluir')
       setDeleting(false)
     }
   }

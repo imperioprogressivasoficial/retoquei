@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Trash2, Archive, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Archive, Loader2, MoreVertical } from 'lucide-react'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface Template {
   id: string
@@ -24,6 +25,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function TemplatesList({ templates }: { templates: Template[] }) {
   const router = useRouter()
+  const confirm = useConfirm()
   const [menu, setMenu] = useState<{ x: number; y: number; item: Template } | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -46,7 +48,8 @@ export default function TemplatesList({ templates }: { templates: Template[] }) 
 
   async function handleDelete() {
     if (!menu) return
-    if (!window.confirm('Tem certeza que deseja apagar este template?')) return
+    const ok = await confirm({ title: 'Apagar template?', description: 'Esta ação não pode ser desfeita.', confirmLabel: 'Apagar', variant: 'danger' })
+    if (!ok) return
     setLoading('delete')
     await fetch(`/api/templates/${menu.item.id}`, { method: 'DELETE' })
     setMenu(null); setLoading(null); router.refresh()
@@ -71,8 +74,18 @@ export default function TemplatesList({ templates }: { templates: Template[] }) 
           <div
             key={t.id}
             onContextMenu={(e) => onContext(e, t)}
-            className={`bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 hover:border-[#C9A14A]/30 transition-colors cursor-pointer ${t.archivedAt ? 'opacity-50' : ''}`}
+            className={`relative bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 hover:border-[#C9A14A]/30 transition-colors cursor-pointer ${t.archivedAt ? 'opacity-50' : ''}`}
           >
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                const rect = e.currentTarget.getBoundingClientRect()
+                setMenu({ x: rect.right - 170, y: rect.bottom + 4, item: t })
+              }}
+              className="absolute top-3 right-3 p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="font-semibold text-white">
@@ -83,7 +96,7 @@ export default function TemplatesList({ templates }: { templates: Template[] }) 
               </div>
             </div>
             <p className="text-sm text-gray-400 line-clamp-3">{t.content}</p>
-            <p className="text-xs text-gray-600 mt-3">{new Date(t.createdAt).toLocaleDateString('pt-BR')}</p>
+            <p className="text-xs text-gray-400 mt-3">{new Date(t.createdAt).toLocaleDateString('pt-BR')}</p>
           </div>
         ))}
       </div>

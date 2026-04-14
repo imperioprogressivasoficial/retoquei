@@ -134,7 +134,7 @@ export default async function IntegrationsPage() {
               </div>
               <p className="text-sm text-gray-400 mb-4">{item.description}</p>
               <div className="bg-black/30 border border-white/[0.06] rounded-lg p-3">
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">Webhook URL</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Webhook URL</p>
                 <CopyWebhookUrl url={`${webhookBase}&source=${item.slug}`} />
               </div>
             </div>

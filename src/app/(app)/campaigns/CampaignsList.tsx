@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Trash2, Archive, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Archive, Loader2, MoreVertical } from 'lucide-react'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface Campaign {
   id: string
@@ -25,6 +26,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function CampaignsList({ campaigns }: { campaigns: Campaign[] }) {
   const router = useRouter()
+  const confirm = useConfirm()
   const [menu, setMenu] = useState<{ x: number; y: number; item: Campaign } | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -47,7 +49,8 @@ export default function CampaignsList({ campaigns }: { campaigns: Campaign[] }) 
 
   async function handleDelete() {
     if (!menu) return
-    if (!window.confirm('Tem certeza que deseja apagar esta campanha?')) return
+    const ok = await confirm({ title: 'Apagar campanha?', description: 'Esta ação não pode ser desfeita.', confirmLabel: 'Apagar', variant: 'danger' })
+    if (!ok) return
     setLoading('delete')
     await fetch(`/api/campaigns/${menu.item.id}`, { method: 'DELETE' })
     setMenu(null); setLoading(null); router.refresh()
@@ -76,6 +79,7 @@ export default function CampaignsList({ campaigns }: { campaigns: Campaign[] }) 
               <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Status</th>
               <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Destinatários</th>
               <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Criada em</th>
+              <th className="w-10" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.04]">
@@ -99,6 +103,18 @@ export default function CampaignsList({ campaigns }: { campaigns: Campaign[] }) 
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-400">{c._count.recipients}</td>
                   <td className="px-4 py-3 text-sm text-gray-400">{new Date(c.createdAt).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-2 py-3">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setMenu({ x: rect.right - 170, y: rect.bottom + 4, item: c })
+                      }}
+                      className="p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                  </td>
                 </tr>
               )
             })}

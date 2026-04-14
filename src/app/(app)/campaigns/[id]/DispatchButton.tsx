@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface Props {
   campaignId: string
@@ -11,15 +13,18 @@ interface Props {
 
 export default function DispatchButton({ campaignId, targetCount }: Props) {
   const router = useRouter()
+  const confirm = useConfirm()
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleDispatch() {
     if (sending) return
-    const confirmed = window.confirm(
-      `Enviar mensagem para ${targetCount} cliente${targetCount === 1 ? '' : 's'}?\n\nEsta ação não pode ser desfeita.`,
-    )
-    if (!confirmed) return
+    const ok = await confirm({
+      title: 'Enviar campanha?',
+      description: `Enviar mensagem para ${targetCount} cliente${targetCount === 1 ? '' : 's'}. Esta ação não pode ser desfeita.`,
+      confirmLabel: 'Enviar',
+    })
+    if (!ok) return
 
     setSending(true)
     setError(null)
@@ -36,13 +41,9 @@ export default function DispatchButton({ campaignId, targetCount }: Props) {
         return
       }
 
-      alert(
-        `Campanha enviada!\n\n` +
-          `Provedor: ${data.provider}\n` +
-          `Total: ${data.totalCount}\n` +
-          `Enviadas: ${data.sentCount}\n` +
-          `Falhas: ${data.failedCount}`,
-      )
+      toast.success('Campanha enviada!', {
+        description: `${data.sentCount} enviada${data.sentCount === 1 ? '' : 's'}${data.failedCount > 0 ? ` · ${data.failedCount} falha${data.failedCount === 1 ? '' : 's'}` : ''}`,
+      })
       router.refresh()
     } catch (err: any) {
       setError(err?.message || 'Erro de rede')

@@ -52,9 +52,9 @@ export default async function SegmentsPage() {
 
       {segmentsRaw.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white/[0.03] border border-white/[0.08] rounded-xl">
-          <Filter className="h-10 w-10 text-gray-600 mb-3" />
+          <Filter className="h-10 w-10 text-gray-400 mb-3" />
           <p className="text-gray-400 mb-2">Nenhum segmento criado ainda</p>
-          <p className="text-xs text-gray-600 mb-4">Segmentos agrupam clientes por características em comum</p>
+          <p className="text-xs text-gray-400 mb-4">Segmentos agrupam clientes por características em comum</p>
           <Link
             href="/segments/new"
             className="bg-[#C9A14A] text-black font-semibold px-4 py-2 rounded-lg text-sm hover:bg-[#b8903e] transition-colors"

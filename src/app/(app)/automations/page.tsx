@@ -36,9 +36,9 @@ export default async function AutomationsPage() {
 
       {automations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white/[0.03] border border-white/[0.08] rounded-xl">
-          <Zap className="h-10 w-10 text-gray-600 mb-3" />
+          <Zap className="h-10 w-10 text-gray-400 mb-3" />
           <p className="text-gray-400 mb-2">Nenhuma automação configurada ainda</p>
-          <p className="text-xs text-gray-600 max-w-xs text-center">
+          <p className="text-xs text-gray-400 max-w-xs text-center">
             Automações disparam mensagens automaticamente com base em gatilhos como aniversário, pós-visita ou risco de perda.
           </p>
         </div>

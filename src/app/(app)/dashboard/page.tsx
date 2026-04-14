@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { Users, Send, Megaphone, AlertTriangle, TrendingUp, UserPlus, UserMinus, Crown, FileText, Plug } from 'lucide-react'
+import { Users, Send, Megaphone, AlertTriangle, TrendingUp, UserPlus, UserMinus, Crown, FileText, Plug, Rocket, CheckCircle2, Circle } from 'lucide-react'
 
 export const metadata = { title: 'Dashboard' }
 
@@ -20,6 +20,8 @@ async function getMetrics(salonId: string) {
     activeCampaigns,
     recentClients,
     recentCampaigns,
+    templateCount,
+    completedCampaigns,
   ] = await Promise.all([
     prisma.client.count({ where: { salonId, deletedAt: null } }),
     prisma.client.count({ where: { salonId, deletedAt: null, lifecycleStage: 'NEW' } }),
@@ -43,12 +45,15 @@ async function getMetrics(salonId: string) {
       take: 5,
       select: { id: true, name: true, status: true, createdAt: true, _count: { select: { recipients: true } } },
     }),
+    prisma.template.count({ where: { salonId } }),
+    prisma.campaign.count({ where: { salonId, status: 'COMPLETED' } }),
   ])
 
   return {
     totalClients, newClients, recurringClients, vipClients, atRiskClients, lostClients,
     messagesSent, messagesFailed, totalCampaigns, activeCampaigns,
     recentClients, recentCampaigns,
+    templateCount, completedCampaigns,
     retentionRate: totalClients > 0
       ? Math.round(((recurringClients + vipClients) / totalClients) * 100)
       : 0,
@@ -93,6 +98,15 @@ export default async function DashboardPage() {
     { label: 'Perdidos', value: m.lostClients, color: 'text-red-400', barColor: 'bg-red-400', icon: UserMinus },
   ]
 
+  const onboardingSteps = [
+    { label: 'Configurar salão', href: '/salon', done: true },
+    { label: 'Adicionar clientes', href: '/clients/new', done: m.totalClients > 0 },
+    { label: 'Criar template', href: '/templates/new', done: m.templateCount > 0 },
+    { label: 'Enviar primeira campanha', href: '/campaigns/new', done: m.completedCampaigns > 0 },
+  ]
+  const completedSteps = onboardingSteps.filter((s) => s.done).length
+  const allDone = completedSteps === onboardingSteps.length
+
   return (
     <div>
       <div className="mb-6 sm:mb-8">
@@ -100,19 +114,53 @@ export default async function DashboardPage() {
         <p className="text-gray-400 mt-1 text-sm">Visão geral do {salon.name}</p>
       </div>
 
+      {!allDone && (
+        <div className="mb-6 bg-white/[0.03] border border-[#C9A14A]/20 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <Rocket className="h-5 w-5 text-[#C9A14A]" />
+            <div>
+              <h2 className="text-sm font-semibold text-white">Primeiros passos</h2>
+              <p className="text-xs text-gray-400">{completedSteps} de {onboardingSteps.length} concluídos</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {onboardingSteps.map((step) => (
+              <Link
+                key={step.href}
+                href={step.href}
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors"
+              >
+                {step.done
+                  ? <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  : <Circle className="h-4 w-4 text-gray-500 shrink-0" />}
+                <span className={step.done ? 'text-sm text-gray-500 line-through' : 'text-sm text-white'}>
+                  {step.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-4 bg-white/5 rounded-full h-1.5 overflow-hidden">
+            <div
+              className="h-full bg-[#C9A14A] rounded-full transition-all duration-500"
+              style={{ width: `${(completedSteps / onboardingSteps.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Top KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-4 w-4 text-[#C9A14A]" />
-            <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">Total clientes</p>
+            <p className="text-xs sm:text-xs text-gray-500 uppercase tracking-wide">Total clientes</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-white">{m.totalClients}</p>
         </div>
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-2">
             <Send className="h-4 w-4 text-emerald-400" />
-            <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">Mensagens</p>
+            <p className="text-xs sm:text-xs text-gray-500 uppercase tracking-wide">Mensagens</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-white">{m.messagesSent}</p>
           {m.messagesFailed > 0 && (
@@ -122,15 +170,15 @@ export default async function DashboardPage() {
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="h-4 w-4 text-emerald-400" />
-            <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">Retenção</p>
+            <p className="text-xs sm:text-xs text-gray-500 uppercase tracking-wide">Retenção</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-emerald-400">{m.retentionRate}%</p>
-          <p className="text-[10px] sm:text-xs text-gray-600 mt-1">recorrentes + VIP</p>
+          <p className="text-xs sm:text-xs text-gray-400 mt-1">recorrentes + VIP</p>
         </div>
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="h-4 w-4 text-orange-400" />
-            <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">Em risco</p>
+            <p className="text-xs sm:text-xs text-gray-500 uppercase tracking-wide">Em risco</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-orange-400">{m.atRiskClients}</p>
           {m.lostClients > 0 && (
@@ -159,7 +207,7 @@ export default async function DashboardPage() {
                     />
                   </div>
                   <span className={`text-sm font-semibold w-10 text-right ${s.color}`}>{s.value}</span>
-                  <span className="text-xs text-gray-600 w-10 text-right">{pct}%</span>
+                  <span className="text-xs text-gray-400 w-10 text-right">{pct}%</span>
                 </div>
               )
             })}
@@ -225,7 +273,7 @@ export default async function DashboardPage() {
                 >
                   <div className="min-w-0">
                     <p className="text-sm text-white truncate">{c.fullName}</p>
-                    <p className="text-xs text-gray-600">{c.phone}</p>
+                    <p className="text-xs text-gray-400">{c.phone}</p>
                   </div>
                   <span className={`text-xs font-medium shrink-0 ${STAGE_COLORS[c.lifecycleStage] ?? 'text-gray-400'}`}>
                     {STAGE_LABELS[c.lifecycleStage] ?? c.lifecycleStage}

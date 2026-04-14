@@ -65,7 +65,7 @@ export default function OnboardingPage() {
                 name="name"
                 required
                 placeholder="Ex: Studio da Mari"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
               />
             </div>
 
@@ -74,7 +74,7 @@ export default function OnboardingPage() {
               <input
                 name="phone"
                 placeholder="(11) 99999-9999"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
               />
             </div>
 

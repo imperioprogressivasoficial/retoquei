@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Trash2, Archive, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Archive, Loader2, MoreVertical } from 'lucide-react'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface Client {
   id: string
@@ -25,6 +26,7 @@ const STAGE_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function ClientsList({ clients }: { clients: Client[] }) {
   const router = useRouter()
+  const confirm = useConfirm()
   const [menu, setMenu] = useState<{ x: number; y: number; item: Client } | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -47,7 +49,8 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
 
   async function handleDelete() {
     if (!menu) return
-    if (!window.confirm('Tem certeza que deseja apagar este cliente?')) return
+    const ok = await confirm({ title: 'Apagar cliente?', description: 'Esta ação não pode ser desfeita.', confirmLabel: 'Apagar', variant: 'danger' })
+    if (!ok) return
     setLoading('delete')
     await fetch(`/api/clients/${menu.item.id}`, { method: 'DELETE' })
     setMenu(null); setLoading(null); router.refresh()
@@ -76,12 +79,13 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
               <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Estágio</th>
               <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Visitas</th>
               <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Última visita</th>
+              <th className="w-10" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.04]">
             {clients.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-gray-500 text-sm">
+                <td colSpan={6} className="text-center py-12 text-gray-500 text-sm">
                   Nenhum cliente encontrado.{' '}
                   <Link href="/clients/new" className="text-[#C9A14A] hover:underline">Adicionar o primeiro</Link>
                 </td>
@@ -108,6 +112,18 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
                     <td className="px-4 py-3 text-sm text-gray-400">{client.visitCount}</td>
                     <td className="px-4 py-3 text-sm text-gray-400">
                       {client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-2 py-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setMenu({ x: rect.right - 170, y: rect.bottom + 4, item: client })
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 )

@@ -83,7 +83,7 @@ export default function LoginPage() {
                 {...register('email')}
                 type="email"
                 placeholder="seu@email.com"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-[#C9A14A]/50 focus:ring-1 focus:ring-[#C9A14A]/30 transition-colors"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-[#C9A14A]/50 focus:ring-1 focus:ring-[#C9A14A]/30 transition-colors"
                 autoComplete="email"
               />
             </div>
@@ -103,7 +103,7 @@ export default function LoginPage() {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 pl-9 pr-9 text-sm focus:outline-none focus:border-[#C9A14A]/50 focus:ring-1 focus:ring-[#C9A14A]/30 transition-colors"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 pl-9 pr-9 text-sm focus:outline-none focus:border-[#C9A14A]/50 focus:ring-1 focus:ring-[#C9A14A]/30 transition-colors"
                 autoComplete="current-password"
               />
               <button

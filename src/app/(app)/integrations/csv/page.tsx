@@ -53,7 +53,7 @@ export default function CSVImportPage() {
         <code className="block text-xs bg-black/30 rounded-lg p-3 text-gray-300 font-mono">
           nome;telefone;email;ultima_visita;visitas;total_gasto
         </code>
-        <p className="text-xs text-gray-600 mt-2">Também aceita: name, phone, celular, whatsapp, last_visit, visit_count, total_spent</p>
+        <p className="text-xs text-gray-400 mt-2">Também aceita: name, phone, celular, whatsapp, last_visit, visit_count, total_spent</p>
       </div>
 
       {result ? (
@@ -119,9 +119,9 @@ export default function CSVImportPage() {
                   </div>
                 ) : (
                   <div>
-                    <Upload className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-400 mb-1">Arraste ou clique para selecionar</p>
-                    <p className="text-xs text-gray-600">Apenas arquivos .csv</p>
+                    <p className="text-xs text-gray-400">Apenas arquivos .csv</p>
                   </div>
                 )}
                 <input

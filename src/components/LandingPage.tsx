@@ -41,7 +41,7 @@ export default function LandingPage() {
         >
           Começar grátis
         </Link>
-        <p className="mt-4 text-xs text-gray-600">Sem cartão de crédito · Grátis para sempre no plano básico</p>
+        <p className="mt-4 text-xs text-gray-400">Sem cartão de crédito · Grátis para sempre no plano básico</p>
       </section>
 
       {/* Como funciona */}
@@ -121,7 +121,7 @@ export default function LandingPage() {
       <footer className="border-t border-white/[0.08] px-6 py-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <span className="text-base font-bold text-white">Retoquei</span>
-          <p className="text-xs text-gray-600">&copy; {new Date().getFullYear()} Retoquei. Todos os direitos reservados.</p>
+          <p className="text-xs text-gray-400">&copy; {new Date().getFullYear()} Retoquei. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

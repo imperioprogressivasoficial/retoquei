@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
+import ConfirmProvider from '@/components/ui/ConfirmProvider'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   try {
@@ -16,7 +17,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Sidebar userEmail={user.email} />
         <main className="lg:pl-60 min-h-screen pt-14 lg:pt-0">
           <div className="p-4 sm:p-6 lg:p-8">
-            {children}
+            <ConfirmProvider>
+              {children}
+            </ConfirmProvider>
           </div>
         </main>
       </div>

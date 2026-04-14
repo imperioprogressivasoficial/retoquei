@@ -43,7 +43,7 @@ export default async function TemplatesPage() {
 
       {templates.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white/[0.03] border border-white/[0.08] rounded-xl">
-          <FileText className="h-10 w-10 text-gray-600 mb-3" />
+          <FileText className="h-10 w-10 text-gray-400 mb-3" />
           <p className="text-gray-400 mb-4">Nenhum template criado ainda</p>
           <Link
             href="/templates/new"

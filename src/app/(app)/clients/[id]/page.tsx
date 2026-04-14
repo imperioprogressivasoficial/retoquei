@@ -1,8 +1,9 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Pencil } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { MESSAGE_STATUS_LABELS } from '@/lib/constants'
 
 const STAGE_LABELS: Record<string, { label: string; color: string }> = {
   NEW: { label: 'Novo', color: 'bg-blue-400/15 text-blue-400' },
@@ -37,14 +38,22 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
   return (
     <div className="max-w-3xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/clients" className="text-gray-400 hover:text-white transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white">{client.fullName}</h1>
-          <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color}`}>{stage.label}</span>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Link href="/clients" className="text-gray-400 hover:text-white transition-colors">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-white">{client.fullName}</h1>
+            <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color}`}>{stage.label}</span>
+          </div>
         </div>
+        <Link
+          href={`/clients/${client.id}/edit`}
+          className="flex items-center gap-2 border border-white/10 text-gray-400 hover:text-white px-4 py-2 rounded-lg text-sm transition-colors"
+        >
+          <Pencil className="h-4 w-4" /> Editar
+        </Link>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -115,9 +124,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               <div key={m.id} className="text-sm py-2 border-b border-white/[0.04] last:border-0">
                 <div className="flex justify-between items-center mb-1">
                   <span className={`text-xs px-1.5 py-0.5 rounded ${m.status === 'DELIVERED' || m.status === 'READ' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-gray-500/15 text-gray-400'}`}>
-                    {m.status}
+                    {MESSAGE_STATUS_LABELS[m.status] ?? m.status}
                   </span>
-                  <span className="text-gray-600 text-xs">{new Date(m.createdAt).toLocaleDateString('pt-BR')}</span>
+                  <span className="text-gray-400 text-xs">{new Date(m.createdAt).toLocaleDateString('pt-BR')}</span>
                 </div>
                 <p className="text-gray-300 truncate">{m.content}</p>
               </div>

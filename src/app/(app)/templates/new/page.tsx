@@ -70,7 +70,7 @@ export default function NewTemplatePage() {
               name="name"
               required
               placeholder="Ex: Reativação 30 dias"
-              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
             />
           </div>
 
@@ -97,7 +97,7 @@ export default function NewTemplatePage() {
               required
               rows={6}
               placeholder="Olá {{nome}}, sentimos sua falta! Que tal agendar um horário?"
-              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-600 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors resize-none"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors resize-none"
             />
           </div>
 
