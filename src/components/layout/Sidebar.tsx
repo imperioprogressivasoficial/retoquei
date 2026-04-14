@@ -18,9 +18,12 @@ import {
   ChevronRight,
   Menu,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSalon } from '@/hooks/useSalon'
+import { useTheme } from '@/components/ui/ThemeProvider'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,6 +44,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { salon } = useSalon()
+  const { theme, toggleTheme } = useTheme()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   async function handleLogout() {
@@ -97,13 +101,23 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           </div>
           <p className="text-xs text-gray-400 truncate flex-1">{userEmail}</p>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/5 transition-colors"
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          <span>Sair</span>
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-3 flex-1 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-[#C9A14A] hover:bg-[#C9A14A]/5 transition-colors"
+            title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
+            <span>{theme === 'dark' ? 'Modo claro' : 'Modo escuro'}</span>
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/5 transition-colors"
+            title="Sair"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+          </button>
+        </div>
       </div>
     </>
   )

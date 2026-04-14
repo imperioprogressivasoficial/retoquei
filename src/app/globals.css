@@ -180,6 +180,253 @@
   }
 }
 
+/* =================================================================
+   LIGHT THEME OVERRIDES
+   Default is dark mode (.dark on <html>). Removing .dark → light mode.
+   ================================================================= */
+
+/* --- shadcn CSS variable overrides for light mode --- */
+html:not(.dark) {
+  --background: 210 20% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 39 49% 54%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 20% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 20% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 39 49% 54%;
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-primary: 39 49% 54%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 20% 96%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 214 32% 91%;
+  --sidebar-ring: 39 49% 54%;
+}
+
+/* --- Body base --- */
+html:not(.dark) body {
+  background-color: #F9FAFB !important;
+  color: #111827 !important;
+}
+
+/* --- Hardcoded dark background overrides --- */
+html:not(.dark) .bg-\[\#0B0B0B\],
+html:not(.dark) .bg-\[\#0A0A0A\] {
+  background-color: #F9FAFB;
+}
+
+html:not(.dark) .bg-\[\#0F0F0F\] {
+  background-color: #FFFFFF;
+}
+
+html:not(.dark) .bg-\[\#0A0A0A\]\/90 {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+html:not(.dark) .bg-\[\#1A1A1A\],
+html:not(.dark) .bg-\[\#1E1E1E\],
+html:not(.dark) .bg-\[\#141414\] {
+  background-color: #FFFFFF;
+}
+
+html:not(.dark) .bg-\[\#161616\] {
+  background-color: #F9FAFB;
+}
+
+/* Semi-transparent white bg → solid light surfaces */
+html:not(.dark) .bg-white\/\[0\.03\],
+html:not(.dark) .bg-white\/\[0\.02\] {
+  background-color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+html:not(.dark) .bg-white\/5 {
+  background-color: #F3F4F6;
+}
+
+html:not(.dark) .bg-white\/10 {
+  background-color: #E5E7EB;
+}
+
+/* Hover backgrounds */
+html:not(.dark) .hover\:bg-white\/5:hover {
+  background-color: #F3F4F6;
+}
+
+html:not(.dark) .hover\:bg-white\/10:hover {
+  background-color: #E5E7EB;
+}
+
+html:not(.dark) .hover\:bg-white\/\[0\.06\]:hover {
+  background-color: #F3F4F6;
+}
+
+/* --- Border overrides --- */
+html:not(.dark) .border-white\/\[0\.08\],
+html:not(.dark) .border-white\/\[0\.07\],
+html:not(.dark) .border-white\/\[0\.06\] {
+  border-color: #E5E7EB;
+}
+
+html:not(.dark) .border-white\/10,
+html:not(.dark) .border-white\/20 {
+  border-color: #D1D5DB;
+}
+
+html:not(.dark) .hover\:border-white\/20:hover {
+  border-color: #9CA3AF;
+}
+
+html:not(.dark) .hover\:border-\[\#C9A14A\]\/40:hover {
+  border-color: rgba(201, 161, 74, 0.4);
+}
+
+/* --- Text color overrides --- */
+html:not(.dark) .text-white {
+  color: #111827;
+}
+
+/* Keep white text on colored button backgrounds */
+html:not(.dark) button.bg-red-500.text-white,
+html:not(.dark) button.bg-red-600.text-white,
+html:not(.dark) button.bg-emerald-500.text-white,
+html:not(.dark) button.bg-blue-500.text-white,
+html:not(.dark) .bg-red-500 > .text-white,
+html:not(.dark) .badge-lost.text-white {
+  color: #FFFFFF;
+}
+
+html:not(.dark) .text-gray-300 {
+  color: #374151;
+}
+
+html:not(.dark) .text-gray-400 {
+  color: #6B7280;
+}
+
+html:not(.dark) .text-\[\#A1A1AA\] {
+  color: #6B7280;
+}
+
+html:not(.dark) .hover\:text-white:hover {
+  color: #111827;
+}
+
+html:not(.dark) .text-white\/40 {
+  color: #9CA3AF;
+}
+
+html:not(.dark) .text-white\/30 {
+  color: #9CA3AF;
+}
+
+html:not(.dark) .hover\:text-white\/80:hover {
+  color: #374151;
+}
+
+/* --- Overlay --- */
+html:not(.dark) .bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+/* --- Gradient overrides --- */
+html:not(.dark) .from-\[\#0B0B0B\] {
+  --tw-gradient-from: #F9FAFB;
+}
+
+html:not(.dark) .to-\[\#1E1E1E\] {
+  --tw-gradient-to: #FFFFFF;
+}
+
+/* --- Input fields --- */
+html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html:not(.dark) textarea,
+html:not(.dark) select {
+  background-color: #F9FAFB;
+  border-color: #D1D5DB;
+  color: #111827;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #9CA3AF;
+}
+
+/* --- Sonner toast --- */
+html:not(.dark) [data-sonner-toaster] [data-sonner-toast] {
+  background-color: #FFFFFF !important;
+  border-color: #E5E7EB !important;
+  color: #111827 !important;
+}
+
+/* --- page-card component --- */
+html:not(.dark) .page-card {
+  background-color: #FFFFFF;
+  border-color: #E5E7EB;
+}
+
+/* --- Glass card --- */
+html:not(.dark) .glass-card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: #E5E7EB;
+}
+
+/* --- btn-primary text stays dark on gold --- */
+html:not(.dark) .btn-primary {
+  color: #0B0B0B;
+}
+
+/* --- Skeleton shimmer --- */
+html:not(.dark) .bg-white\/10.animate-pulse,
+html:not(.dark) .animate-pulse .bg-white\/10 {
+  background-color: #E5E7EB;
+}
+
+html:not(.dark) .shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    #F3F4F6 25%,
+    #E5E7EB 50%,
+    #F3F4F6 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* --- Scrollbar --- */
+html:not(.dark) .scrollbar-thin {
+  scrollbar-color: #D1D5DB transparent;
+}
+
+html:not(.dark) .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #D1D5DB;
+}
+
+/* --- WhatsApp preview bubble stays green --- */
+html:not(.dark) .bg-\[\#005C4B\]\/20 {
+  background-color: rgba(0, 92, 75, 0.1);
+}
+
+/* --- Shadow for cards in light mode --- */
+html:not(.dark) .bg-\[\#1A1A1A\],
+html:not(.dark) .bg-\[\#1E1E1E\],
+html:not(.dark) .bg-\[\#141414\],
+html:not(.dark) .bg-white\/\[0\.03\] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
