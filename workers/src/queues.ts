@@ -79,20 +79,20 @@ export const flowExecutorQueue = new Queue('flow-executor', {
 // ---------------------------------------------------------------------------
 
 export interface ConnectorSyncJobData {
-  tenantId: string;
+  salonId: string;
   connectorId: string;
   syncType: 'full' | 'incremental';
 }
 
 export interface CustomerRecomputeJobData {
-  tenantId: string;
-  /** When omitted all customers for the tenant are recomputed */
-  customerId?: string;
+  salonId: string;
+  /** When omitted all clients for the salon are recomputed */
+  clientId?: string;
 }
 
 export interface SegmentRefreshJobData {
-  tenantId: string;
-  /** When omitted all segments for the tenant are refreshed */
+  salonId: string;
+  /** When omitted all segments for the salon are refreshed */
   segmentId?: string;
 }
 
@@ -109,13 +109,13 @@ export interface CampaignScheduleJobData {
 }
 
 export interface RetryFailedMessagesJobData {
-  tenantId?: string; // omit to retry across all tenants
+  salonId?: string; // omit to retry across all salons
 }
 
 export interface FlowExecutorJobData {
   type: 'trigger_inactive' | 'trigger_birthday' | 'trigger_segment' | 'trigger_post_service' | 'execute_manual';
-  tenantId: string;
-  customerId?: string;
+  salonId: string;
+  clientId?: string;
   appointmentId?: string;
   segmentId?: string;
 }

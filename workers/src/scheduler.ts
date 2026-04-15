@@ -1,8 +1,6 @@
 import { Queue } from 'bullmq'
 import { redis } from './lib/redis'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import prisma from './lib/prisma'
 
 // ---------------------------------------------------------------------------
 // Scheduler — registers all recurring cron jobs using BullMQ repeat
@@ -77,16 +75,16 @@ export async function setupScheduler() {
   )
 
   // ── Daily flow trigger checks (every day at different times) ──────────────
-  // Get all tenants to create per-tenant flow jobs
-  const tenants = await prisma.tenant.findMany({ select: { id: true } })
-  for (const tenant of tenants) {
+  // Get all salons to create per-salon flow jobs
+  const salons = await prisma.salon.findMany({ select: { id: true } })
+  for (const salon of salons) {
     // Check DAYS_INACTIVE flows every 6 hours
     await queues.flowExecutor.add(
       'check-inactive-flows',
-      { type: 'trigger_inactive', tenantId: tenant.id },
+      { type: 'trigger_inactive', salonId: salon.id },
       {
         repeat: { pattern: '0 */6 * * *' }, // Every 6 hours
-        jobId: `trigger-inactive-${tenant.id}`,
+        jobId: `trigger-inactive-${salon.id}`,
         removeOnComplete: { count: 5 },
       },
     )
@@ -94,10 +92,10 @@ export async function setupScheduler() {
     // Check BIRTHDAY_MONTH flows daily at 08:00 BRT
     await queues.flowExecutor.add(
       'check-birthday-flows',
-      { type: 'trigger_birthday', tenantId: tenant.id },
+      { type: 'trigger_birthday', salonId: salon.id },
       {
         repeat: { pattern: '0 11 * * *' }, // 08:00 BRT = 11:00 UTC
-        jobId: `trigger-birthday-${tenant.id}`,
+        jobId: `trigger-birthday-${salon.id}`,
         removeOnComplete: { count: 5 },
       },
     )

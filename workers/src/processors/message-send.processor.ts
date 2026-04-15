@@ -1,18 +1,10 @@
 import type { Job } from 'bullmq'
-import { PrismaClient } from '@prisma/client'
 import { getHours } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
+import prisma from '../lib/prisma'
 
-const prisma = new PrismaClient()
-
-// ---------------------------------------------------------------------------
-// Message Send Processor
-// Handles outbound_message jobs — validates opt-in, checks quiet hours,
-// interpolates variables, sends via provider, updates status.
-// ---------------------------------------------------------------------------
-
-const QUIET_HOURS_START = 22 // 22:00
-const QUIET_HOURS_END = 8   // 08:00
+const QUIET_HOURS_START = 22
+const QUIET_HOURS_END = 8
 const BRAZIL_TZ = 'America/Sao_Paulo'
 const MAX_RETRIES = 3
 
@@ -20,7 +12,6 @@ interface MessageSendJobData {
   messageId: string
 }
 
-// Lazy-loaded provider to avoid import issues in worker context
 let _provider: { sendTextMessage: (to: string, body: string) => Promise<{ success: boolean; providerMessageId?: string; error?: string }> } | null = null
 
 async function getProvider() {
@@ -55,12 +46,11 @@ function interpolateVariables(body: string, vars: Record<string, string>): strin
 export async function processMessageSend(job: Job<MessageSendJobData>): Promise<void> {
   const { messageId } = job.data
 
-  const message = await prisma.outboundMessage.findUnique({
+  const message = await prisma.message.findUnique({
     where: { id: messageId },
     include: {
-      customer: {
-        include: { metrics: true },
-      },
+      client: true,
+      salon: true,
       template: true,
     },
   })
@@ -70,15 +60,14 @@ export async function processMessageSend(job: Job<MessageSendJobData>): Promise<
     return
   }
 
-  // Skip if already sent or opted out
+  // Skip if already processed
   if (['SENT', 'DELIVERED', 'READ'].includes(message.status)) return
-  if (message.status === 'OPTED_OUT') return
 
   // Check WhatsApp opt-in
-  if (message.customer && !message.customer.whatsappOptIn) {
-    await prisma.outboundMessage.update({
+  if (message.client && !message.client.whatsappOptIn) {
+    await prisma.message.update({
       where: { id: messageId },
-      data: { status: 'OPTED_OUT' },
+      data: { status: 'FAILED', failedAt: new Date() },
     })
     return
   }
@@ -86,97 +75,87 @@ export async function processMessageSend(job: Job<MessageSendJobData>): Promise<
   // Check quiet hours
   if (isQuietHours()) {
     console.log(`[MessageSend] Quiet hours — deferring message ${messageId}`)
-    // Job will be retried by BullMQ; the scheduler reschedules for morning
     throw new Error('QUIET_HOURS')
   }
 
   // Mark as queued
-  await prisma.outboundMessage.update({
+  await prisma.message.update({
     where: { id: messageId },
     data: { status: 'QUEUED' },
   })
 
   // Build variable context
-  const customer = message.customer
-  const now = new Date()
+  const client = message.client
+  const salon = message.salon
   const variables: Record<string, string> = {
-    customer_name: customer?.fullName ?? '',
-    first_name: customer?.fullName?.split(' ')[0] ?? '',
-    salon_name: '', // TODO: load from tenant
-    days_since_last_visit: String(customer?.metrics?.daysSinceLastVisit ?? ''),
-    last_visit_date: customer?.metrics?.lastVisitAt
-      ? customer.metrics.lastVisitAt.toLocaleDateString('pt-BR')
-      : '',
-    predicted_return_date: customer?.metrics?.predictedReturnDate
-      ? customer.metrics.predictedReturnDate.toLocaleDateString('pt-BR')
-      : '',
-    preferred_service: '', // TODO: load from service name
-    last_service: '', // TODO: load from last appointment
+    nome: client?.fullName?.split(' ')[0] ?? 'cliente',
+    name: client?.fullName?.split(' ')[0] ?? 'cliente',
+    fullName: client?.fullName ?? 'cliente',
+    first_name: client?.fullName?.split(' ')[0] ?? 'cliente',
+    customer_name: client?.fullName ?? 'cliente',
+    salon_name: salon?.name ?? '',
   }
 
-  // Load tenant name for salon_name variable
-  try {
-    const tenant = await prisma.tenant.findUnique({ where: { id: message.tenantId }, select: { name: true } })
-    if (tenant) variables.salon_name = tenant.name
-  } catch {}
-
   // Render body
-  const renderedBody = interpolateVariables(message.bodyRendered, variables)
+  const renderedBody = interpolateVariables(message.content, variables)
+
+  const attemptNumber = (job.attemptsMade ?? 0) + 1
 
   try {
     const provider = await getProvider()
-    const result = await provider.sendTextMessage(message.toNumber, renderedBody)
+    const result = await provider.sendTextMessage(client.phone, renderedBody)
 
     if (result.success) {
-      await prisma.outboundMessage.update({
+      await prisma.message.update({
         where: { id: messageId },
         data: {
           status: 'SENT',
-          providerMessageId: result.providerMessageId,
+          externalMessageId: result.providerMessageId ?? null,
           sentAt: new Date(),
-          bodyRendered: renderedBody,
+          content: renderedBody,
         },
       })
 
-      await prisma.messageEvent.create({
-        data: {
-          messageId,
-          eventType: 'sent',
-          payload: { providerMessageId: result.providerMessageId } as object,
-        },
-      })
+      // Also update campaign recipient if this is a campaign message
+      if (message.campaignId) {
+        await prisma.campaignRecipient.updateMany({
+          where: { campaignId: message.campaignId, clientId: message.clientId },
+          data: { messageStatus: 'SENT', sentAt: new Date() },
+        })
+      }
     } else {
-      const retryCount = (message.retryCount ?? 0) + 1
-      const failed = retryCount >= MAX_RETRIES
-
-      await prisma.outboundMessage.update({
+      const failed = attemptNumber >= MAX_RETRIES
+      await prisma.message.update({
         where: { id: messageId },
         data: {
           status: failed ? 'FAILED' : 'PENDING',
-          error: result.error,
-          retryCount,
+          failedAt: failed ? new Date() : null,
         },
       })
 
       if (!failed) {
-        throw new Error(`Send failed: ${result.error}`) // Trigger BullMQ retry
+        throw new Error(`Send failed: ${result.error}`)
       }
     }
   } catch (err) {
     const msg = (err as Error).message
-    if (msg === 'QUIET_HOURS') throw err // Re-throw to trigger retry
+    if (msg === 'QUIET_HOURS') throw err
 
-    const retryCount = (message.retryCount ?? 0) + 1
-    const failed = retryCount >= MAX_RETRIES
-
-    await prisma.outboundMessage.update({
+    const failed = attemptNumber >= MAX_RETRIES
+    await prisma.message.update({
       where: { id: messageId },
       data: {
         status: failed ? 'FAILED' : 'PENDING',
-        error: msg,
-        retryCount,
+        failedAt: failed ? new Date() : null,
       },
     })
+
+    if (message.campaignId && failed) {
+      await prisma.campaignRecipient.updateMany({
+        where: { campaignId: message.campaignId, clientId: message.clientId },
+        data: { messageStatus: 'FAILED' },
+      })
+    }
 
     if (!failed) throw err
   }
