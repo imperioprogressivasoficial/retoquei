@@ -2,6 +2,25 @@ import { NextResponse } from 'next/server'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { getMessagingProvider } from '@/services/messaging/messaging.factory'
+import IORedis from 'ioredis'
+import { Queue } from 'bullmq'
+
+let _messageSendQueue: Queue | null = null
+function getMessageSendQueue(): Queue | null {
+  if (!process.env.REDIS_URL) return null
+  if (_messageSendQueue) return _messageSendQueue
+  try {
+    const redis = new IORedis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+      lazyConnect: true,
+    })
+    _messageSendQueue = new Queue('message-send', { connection: redis })
+    return _messageSendQueue
+  } catch {
+    return null
+  }
+}
 
 /**
  * Render a template by replacing {{variable}} placeholders with client data.
@@ -95,8 +114,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const provider = getMessagingProvider()
     const templateContent = campaign.template.content
 
-    let sentCount = 0
-    let failedCount = 0
+    // Phase 1: Create all CampaignRecipient + Message records up front
+    const messageIds: string[] = []
+    const recipientMap: Map<string, { recipientId: string; messageId: string; phone: string }> = new Map()
 
     for (const client of clients) {
       const rendered = renderTemplate(templateContent, client)
@@ -120,7 +140,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         })
         if (!recipient) {
           console.error(`Failed to create recipient for ${client.id}:`, err)
-          failedCount++
           continue
         }
       }
@@ -139,13 +158,52 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         },
       })
 
-      // Actually send through the provider
+      messageIds.push(message.id)
+      recipientMap.set(message.id, {
+        recipientId: recipient.id,
+        messageId: message.id,
+        phone: client.phone,
+      })
+    }
+
+    // Phase 2: Try async dispatch via BullMQ (if Redis is available)
+    const queue = getMessageSendQueue()
+    if (queue) {
+      const jobs = messageIds.map((msgId) => ({
+        name: 'campaign-message',
+        data: { messageId: msgId },
+        opts: { attempts: 3, backoff: { type: 'exponential' as const, delay: 5000 } },
+      }))
+      await queue.addBulk(jobs)
+
+      return NextResponse.json(
+        {
+          success: true,
+          async: true,
+          totalCount: clients.length,
+          message: 'Mensagens enfileiradas para envio',
+        },
+        { status: 202 },
+      )
+    }
+
+    // Phase 3: Fallback — synchronous dispatch (no Redis available)
+    let sentCount = 0
+    let failedCount = 0
+
+    for (const msgId of messageIds) {
+      const entry = recipientMap.get(msgId)
+      if (!entry) continue
+
+      const msg = await prisma.message.findUnique({ where: { id: msgId } })
+      if (!msg) continue
+
       try {
-        const result = await provider.sendTextMessage(client.phone, rendered)
+        const result = await provider.sendTextMessage(entry.phone, msg.content)
 
         if (result.success) {
           await prisma.message.update({
-            where: { id: message.id },
+            where: { id: msgId },
             data: {
               status: 'SENT',
               sentAt: new Date(),
@@ -153,36 +211,36 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
             },
           })
           await prisma.campaignRecipient.update({
-            where: { id: recipient.id },
+            where: { id: entry.recipientId },
             data: { messageStatus: 'SENT', sentAt: new Date() },
           })
           sentCount++
         } else {
           await prisma.message.update({
-            where: { id: message.id },
+            where: { id: msgId },
             data: {
               status: 'FAILED',
               failedAt: new Date(),
             },
           })
           await prisma.campaignRecipient.update({
-            where: { id: recipient.id },
+            where: { id: entry.recipientId },
             data: { messageStatus: 'FAILED' },
           })
           failedCount++
-          console.error(`Send failed for ${client.phone}: ${result.error}`)
+          console.error(`Send failed for ${entry.phone}: ${result.error}`)
         }
       } catch (err: any) {
         await prisma.message.update({
-          where: { id: message.id },
+          where: { id: msgId },
           data: { status: 'FAILED', failedAt: new Date() },
         })
         await prisma.campaignRecipient.update({
-          where: { id: recipient.id },
+          where: { id: entry.recipientId },
           data: { messageStatus: 'FAILED' },
         })
         failedCount++
-        console.error(`Send error for ${client.phone}:`, err?.message || err)
+        console.error(`Send error for ${entry.phone}:`, err?.message || err)
       }
     }
 
@@ -197,6 +255,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
     return NextResponse.json({
       success: true,
+      async: false,
       provider: provider.name,
       totalCount: clients.length,
       sentCount,

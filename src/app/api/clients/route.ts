@@ -52,6 +52,20 @@ export async function POST(request: Request) {
       },
     })
 
+    // Fire automation webhook (fire-and-forget)
+    fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/client-event`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'client.created',
+          salonId: salon.id,
+          clientId: client.id,
+        }),
+      }
+    ).catch(() => {}) // Don't block response
+
     return NextResponse.json({ client }, { status: 201 })
   } catch (err) {
     console.error('POST /api/clients error:', err)
