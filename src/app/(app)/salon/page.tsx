@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Loader2, Building2, User, KeyRound, CheckCircle2 } from 'lucide-react'
+import { Loader2, Building2, User, KeyRound, CheckCircle2, MessageCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Salon {
@@ -28,6 +28,12 @@ export default function SalonPage() {
   const [resetLoading, setResetLoading] = useState(false)
   const [resetError, setResetError] = useState('')
 
+  // WhatsApp login phone
+  const [profilePhone, setProfilePhone] = useState('')
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileSaved, setProfileSaved] = useState(false)
+  const [profileError, setProfileError] = useState('')
+
   useEffect(() => {
     fetch('/api/salons')
       .then((r) => r.json())
@@ -43,7 +49,38 @@ export default function SalonPage() {
       setUserId(data.user?.id ?? null)
       setCreatedAt(data.user?.created_at ?? null)
     })
+
+    fetch('/api/profile')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.profile?.phone) setProfilePhone(d.profile.phone)
+      })
+      .catch(() => { /* ignore */ })
   }, [])
+
+  async function handleProfileSave() {
+    setProfileSaving(true)
+    setProfileError('')
+    setProfileSaved(false)
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: profilePhone || null }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setProfileError(json.error ?? 'Erro ao salvar')
+        return
+      }
+      setProfileSaved(true)
+      setTimeout(() => setProfileSaved(false), 3000)
+    } catch {
+      setProfileError('Erro de rede')
+    } finally {
+      setProfileSaving(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -248,6 +285,62 @@ export default function SalonPage() {
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">ID da conta</p>
               <p className="text-gray-500 text-xs font-mono break-all">{userId ?? '...'}</p>
+            </div>
+          </div>
+
+          {/* WhatsApp para login */}
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <MessageCircle className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <h2 className="text-sm font-semibold text-white">WhatsApp para login</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Configure para poder entrar sem senha, recebendo um código pelo WhatsApp.
+                </p>
+              </div>
+            </div>
+
+            {profileError && (
+              <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400 mb-3">
+                {profileError}
+              </div>
+            )}
+
+            {profileSaved && (
+              <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-4 py-3 text-sm text-emerald-400 mb-3 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                WhatsApp salvo com sucesso!
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 uppercase tracking-wide block mb-1.5">
+                  Número com DDD
+                </label>
+                <input
+                  type="tel"
+                  value={profilePhone}
+                  onChange={(e) => setProfilePhone(e.target.value)}
+                  placeholder="(11) 99999-9999"
+                  className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+                />
+                <p className="text-xs text-gray-500 mt-1.5">
+                  Exemplo: 11999999999. Este número vai receber seu código de acesso.
+                </p>
+              </div>
+
+              <button
+                onClick={handleProfileSave}
+                disabled={profileSaving}
+                className="w-full border border-emerald-500/30 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/10 font-medium py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {profileSaving ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+                ) : (
+                  <>Salvar WhatsApp</>
+                )}
+              </button>
             </div>
           </div>
 

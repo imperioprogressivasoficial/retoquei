@@ -57,6 +57,23 @@ export class MockMessagingProvider implements IMessagingProvider {
     return { success: true, providerMessageId: id }
   }
 
+  async sendMediaMessage(
+    to: string,
+    mediaUrl: string,
+    mediaType: string,
+    caption?: string,
+    fileName?: string,
+  ): Promise<MessageResult> {
+    const id = `mock_media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    console.log(`[MockWhatsApp] 🖼️ Media message sent`)
+    console.log(`  To:       ${to}`)
+    console.log(`  Media:    ${mediaUrl} (${mediaType})`)
+    console.log(`  File:     ${fileName ?? '—'}`)
+    console.log(`  Caption:  ${caption ?? '—'}`)
+    console.log(`  ID:       ${id}`)
+    return { success: true, providerMessageId: id }
+  }
+
   async sendTemplateMessage(
     to: string,
     templateName: string,

@@ -13,12 +13,26 @@ model Profile {
   userId    String   @unique @map("user_id")
   fullName  String?  @map("full_name")
   email     String?
+  phone     String?  @unique
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   salonMembers SalonMember[]
 
   @@map("profiles")
+}
+
+model OtpCode {
+  id        String    @id @default(uuid())
+  phone     String
+  codeHash  String    @map("code_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([phone, createdAt])
+  @@map("otp_codes")
 }
 
 model Salon {
@@ -192,6 +206,9 @@ model Template {
   name       String
   category   TemplateCategory @default(CUSTOM)
   content    String
+  mediaUrl   String?          @map("media_url")
+  mediaType  String?          @map("media_type")
+  mediaName  String?          @map("media_name")
   archivedAt DateTime?        @map("archived_at")
   createdAt  DateTime         @default(now()) @map("created_at")
   updatedAt  DateTime         @updatedAt @map("updated_at")

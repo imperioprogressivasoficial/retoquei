@@ -29,7 +29,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params
     const body = await request.json()
-    const { name, category, content } = body
+    const { name, category, content, mediaUrl, mediaType, mediaName } = body
 
     if (!name) return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
 
@@ -44,6 +44,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         name,
         category: category ?? existing.category,
         content: content ?? existing.content,
+        mediaUrl: mediaUrl === undefined ? existing.mediaUrl : mediaUrl,
+        mediaType: mediaType === undefined ? existing.mediaType : mediaType,
+        mediaName: mediaName === undefined ? existing.mediaName : mediaName,
       },
     })
 

@@ -4,6 +4,7 @@ import { ArrowLeft, Pencil } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { MESSAGE_STATUS_LABELS } from '@/lib/constants'
+import LTVCard from '@/components/clients/LTVCard'
 
 const STAGE_LABELS: Record<string, { label: string; color: string }> = {
   NEW: { label: 'Novo', color: 'bg-blue-400/15 text-blue-400' },
@@ -57,8 +58,18 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 mb-6">
+        <LTVCard
+          client={{
+            totalSpent: Number(client.totalSpent),
+            visitCount: client.visitCount,
+            averageTicket: Number(client.averageTicket),
+            lastVisitAt: client.lastVisitAt,
+            createdAt: client.createdAt,
+          }}
+        />
+
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-gray-300 mb-3">Informações</h2>
+          <h2 className="text-sm font-semibold text-gray-300 mb-3">Informações de contato</h2>
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-gray-500">Telefone</dt>
@@ -70,33 +81,25 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 <dd className="text-white">{client.email}</dd>
               </div>
             )}
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Visitas</dt>
-              <dd className="text-white">{client.visitCount}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Total gasto</dt>
-              <dd className="text-white">R$ {Number(client.totalSpent).toFixed(2)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500">Ticket médio</dt>
-              <dd className="text-white">R$ {Number(client.averageTicket).toFixed(2)}</dd>
-            </div>
             {client.lastVisitAt && (
               <div className="flex justify-between">
                 <dt className="text-gray-500">Última visita</dt>
                 <dd className="text-white">{new Date(client.lastVisitAt).toLocaleDateString('pt-BR')}</dd>
               </div>
             )}
+            <div className="flex justify-between">
+              <dt className="text-gray-500">Cliente desde</dt>
+              <dd className="text-white">{new Date(client.createdAt).toLocaleDateString('pt-BR')}</dd>
+            </div>
           </dl>
-        </div>
 
-        {client.notes && (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-gray-300 mb-3">Observações</h2>
-            <p className="text-sm text-gray-400">{client.notes}</p>
-          </div>
-        )}
+          {client.notes && (
+            <div className="mt-4 pt-4 border-t border-white/[0.05]">
+              <h3 className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-2">Observações</h3>
+              <p className="text-sm text-gray-300 whitespace-pre-wrap">{client.notes}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {client.appointments.length > 0 && (

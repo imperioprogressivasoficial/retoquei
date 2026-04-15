@@ -12,9 +12,22 @@ interface MessageSendJobData {
   messageId: string
 }
 
-let _provider: { sendTextMessage: (to: string, body: string) => Promise<{ success: boolean; providerMessageId?: string; error?: string }> } | null = null
+interface SendResult { success: boolean; providerMessageId?: string; error?: string }
 
-async function getProvider() {
+interface Provider {
+  sendTextMessage: (to: string, body: string) => Promise<SendResult>
+  sendMediaMessage?: (
+    to: string,
+    mediaUrl: string,
+    mediaType: string,
+    caption?: string,
+    fileName?: string,
+  ) => Promise<SendResult>
+}
+
+let _provider: Provider | null = null
+
+async function getProvider(): Promise<Provider> {
   if (_provider) return _provider
 
   const isMock = process.env.WHATSAPP_MOCK_MODE === 'true' || !process.env.WHATSAPP_ACCESS_TOKEN
@@ -103,7 +116,17 @@ export async function processMessageSend(job: Job<MessageSendJobData>): Promise<
 
   try {
     const provider = await getProvider()
-    const result = await provider.sendTextMessage(client.phone, renderedBody)
+    const tpl = (message as any).template as { mediaUrl?: string | null; mediaType?: string | null; mediaName?: string | null } | null
+    const hasMedia = !!(tpl?.mediaUrl && tpl?.mediaType)
+    const result = hasMedia && provider.sendMediaMessage
+      ? await provider.sendMediaMessage(
+          client.phone,
+          tpl!.mediaUrl!,
+          tpl!.mediaType!,
+          renderedBody,
+          tpl!.mediaName ?? undefined,
+        )
+      : await provider.sendTextMessage(client.phone, renderedBody)
 
     if (result.success) {
       await prisma.message.update({

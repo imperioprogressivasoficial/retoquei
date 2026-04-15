@@ -37,6 +37,15 @@ export interface IMessagingProvider {
   /** Send a free-text message (only works in sandbox or for session messages) */
   sendTextMessage(to: string, body: string): Promise<MessageResult>
 
+  /** Send a media message (image or PDF) with optional caption */
+  sendMediaMessage?(
+    to: string,
+    mediaUrl: string,
+    mediaType: string,
+    caption?: string,
+    fileName?: string,
+  ): Promise<MessageResult>
+
   /** Send a pre-approved template message with variable substitution */
   sendTemplateMessage(
     to: string,

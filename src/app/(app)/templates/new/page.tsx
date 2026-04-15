@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2 } from 'lucide-react'
+import MediaUpload from '@/components/ui/MediaUpload'
 
 const CATEGORIES = [
   { value: 'REACTIVATION', label: 'Reativação' },
@@ -13,10 +14,13 @@ const CATEGORIES = [
   { value: 'CUSTOM', label: 'Personalizado' },
 ]
 
+interface Media { url: string; type: string; name: string }
+
 export default function NewTemplatePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [media, setMedia] = useState<Media | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -27,6 +31,9 @@ export default function NewTemplatePage() {
       name: (form.elements.namedItem('name') as HTMLInputElement).value,
       category: (form.elements.namedItem('category') as HTMLSelectElement).value,
       content: (form.elements.namedItem('content') as HTMLTextAreaElement).value,
+      mediaUrl: media?.url ?? null,
+      mediaType: media?.type ?? null,
+      mediaName: media?.name ?? null,
     }
     try {
       const res = await fetch('/api/templates', {
@@ -99,6 +106,12 @@ export default function NewTemplatePage() {
               placeholder="Olá {{nome}}, sentimos sua falta! Que tal agendar um horário?"
               className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors resize-none"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white">Mídia (opcional)</label>
+            <p className="text-xs text-gray-500">Anexe uma imagem ou PDF para enviar junto com a mensagem</p>
+            <MediaUpload value={media} onChange={setMedia} disabled={loading} />
           </div>
 
           <div className="flex gap-3 pt-2">

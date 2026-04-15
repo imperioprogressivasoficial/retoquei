@@ -79,6 +79,52 @@ export class EvolutionApiProvider implements IMessagingProvider {
     return this.sendTextMessage(to, body)
   }
 
+  async sendMediaMessage(
+    to: string,
+    mediaUrl: string,
+    mediaType: string,
+    caption?: string,
+    fileName?: string,
+  ): Promise<MessageResult> {
+    try {
+      const phone = this.formatPhone(to)
+
+      // Map MIME type → Evolution mediatype
+      let mediatype: 'image' | 'video' | 'document' = 'document'
+      if (mediaType.startsWith('image/')) mediatype = 'image'
+      else if (mediaType.startsWith('video/')) mediatype = 'video'
+
+      const res = await fetch(
+        `${this.baseUrl}/message/sendMedia/${this.instanceName}`,
+        {
+          method: 'POST',
+          headers: this.headers(),
+          body: JSON.stringify({
+            number: phone,
+            mediatype,
+            mimetype: mediaType,
+            media: mediaUrl,
+            caption: caption ?? '',
+            fileName: fileName ?? 'file',
+          }),
+        },
+      )
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        return { success: false, error: data?.message ?? `HTTP ${res.status}` }
+      }
+
+      return {
+        success: true,
+        providerMessageId: data?.key?.id ?? data?.id,
+      }
+    } catch (err) {
+      return { success: false, error: String(err) }
+    }
+  }
+
   async getDeliveryStatus(_id: string): Promise<DeliveryStatus> {
     return { status: 'sent' }
   }

@@ -199,7 +199,19 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       if (!msg) continue
 
       try {
-        const result = await provider.sendTextMessage(entry.phone, msg.content)
+        // If the template has media attached, send as media with caption.
+        // Otherwise fall back to plain text.
+        const tpl = campaign.template
+        const hasMedia = !!(tpl?.mediaUrl && tpl?.mediaType)
+        const result = hasMedia && provider.sendMediaMessage
+          ? await provider.sendMediaMessage(
+              entry.phone,
+              tpl!.mediaUrl!,
+              tpl!.mediaType!,
+              msg.content,
+              tpl!.mediaName ?? undefined,
+            )
+          : await provider.sendTextMessage(entry.phone, msg.content)
 
         if (result.success) {
           await prisma.message.update({

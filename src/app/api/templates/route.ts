@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     if (!salon) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
     const body = await request.json()
-    const { name, category, content } = body
+    const { name, category, content, mediaUrl, mediaType, mediaName } = body
 
     if (!name) return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
     if (!content) return NextResponse.json({ error: 'Conteúdo é obrigatório' }, { status: 400 })
@@ -36,6 +36,9 @@ export async function POST(request: Request) {
         name,
         category: category ?? 'CUSTOM',
         content,
+        mediaUrl: mediaUrl ?? null,
+        mediaType: mediaType ?? null,
+        mediaName: mediaName ?? null,
       },
     })
 
