@@ -32,18 +32,30 @@ export async function POST(request: Request) {
     if (!salon) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
     const body = await request.json()
-    const { name, segmentId, templateId, scheduledAt } = body
+    let { name, segmentId, templateId, manualContent, scheduledAt } = body
 
     if (!name) return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 })
+
+    if (manualContent && !templateId) {
+      const template = await prisma.template.create({
+        data: {
+          salonId: salon.id,
+          name: `Campanha: ${name}`,
+          category: 'CUSTOM',
+          content: manualContent,
+        },
+      })
+      templateId = template.id
+    }
 
     const campaign = await prisma.campaign.create({
       data: {
         salonId: salon.id,
         name,
-        segmentId: segmentId ?? null,
-        templateId: templateId ?? null,
-        status: 'DRAFT',
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        segmentId: segmentId || undefined,
+        templateId: templateId || undefined,
+        status: scheduledAt ? 'SCHEDULED' : 'DRAFT',
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
       },
     })
 

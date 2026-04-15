@@ -15,6 +15,8 @@ export default function NewCampaignPage() {
   const [segments, setSegments] = useState<Segment[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [writeManual, setWriteManual] = useState(false)
+  const [manualContent, setManualContent] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -31,10 +33,13 @@ export default function NewCampaignPage() {
     setLoading(true)
     setError('')
     const form = e.currentTarget
+    const scheduledAt = (form.elements.namedItem('scheduledAt') as HTMLInputElement).value || undefined
     const data = {
       name: (form.elements.namedItem('name') as HTMLInputElement).value,
       segmentId: (form.elements.namedItem('segmentId') as HTMLSelectElement).value || undefined,
-      templateId: (form.elements.namedItem('templateId') as HTMLSelectElement).value || undefined,
+      templateId: writeManual ? undefined : ((form.elements.namedItem('templateId') as HTMLSelectElement)?.value || undefined),
+      manualContent: writeManual ? manualContent : undefined,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
     }
     try {
       const res = await fetch('/api/campaigns', {
@@ -102,6 +107,47 @@ export default function NewCampaignPage() {
           </div>
 
           <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white">Tipo de mensagem</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setWriteManual(false)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!writeManual ? 'bg-[#C9A14A]/15 text-[#C9A14A] border border-[#C9A14A]/30' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
+              >
+                Usar template
+              </button>
+              <button
+                type="button"
+                onClick={() => setWriteManual(true)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${writeManual ? 'bg-[#C9A14A]/15 text-[#C9A14A] border border-[#C9A14A]/30' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
+              >
+                Escrever mensagem
+              </button>
+            </div>
+          </div>
+
+          {writeManual ? (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-white">Mensagem</label>
+              <textarea
+                name="manualContent"
+                value={manualContent}
+                onChange={(e) => setManualContent(e.target.value)}
+                rows={5}
+                placeholder="Digite sua mensagem... Use {{nome}} para personalizar"
+                className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors resize-none"
+              />
+              {manualContent && (
+                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4 mt-2">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Pré-visualização</p>
+                  <div className="bg-[#005C4B]/20 border border-[#005C4B]/30 rounded-lg p-3 text-sm text-gray-300 whitespace-pre-wrap">
+                    {manualContent}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+          <div className="space-y-1.5">
             <label className="text-sm font-medium text-white">Template de mensagem</label>
             <select
               name="templateId"
@@ -126,6 +172,17 @@ export default function NewCampaignPage() {
                 </div>
               )
             })()}
+          </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-white">Agendamento</label>
+            <input
+              name="scheduledAt"
+              type="datetime-local"
+              className="w-full bg-white/5 border border-white/10 text-white rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
+            />
+            <p className="text-xs text-gray-500">Deixe vazio para enviar manualmente depois</p>
           </div>
 
           <div className="flex gap-3 pt-2">
