@@ -203,7 +203,7 @@ export default function SalonPage() {
                   <div className="w-full bg-white/[0.02] border border-white/[0.06] text-gray-500 rounded-lg py-2.5 px-3 text-sm font-mono">
                     {salon.slug}
                   </div>
-                  <p className="text-xs text-gray-600">O slug é gerado automaticamente e não pode ser alterado.</p>
+                  <p className="text-xs text-gray-400">O slug é gerado automaticamente e não pode ser alterado.</p>
                 </div>
               )}
 

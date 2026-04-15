@@ -21,7 +21,8 @@ async function getMetrics(salonId: string) {
     recentClients,
     recentCampaigns,
     templateCount,
-    completedCampaigns,
+    sentCampaign,
+    whatsappIntegration,
   ] = await Promise.all([
     prisma.client.count({ where: { salonId, deletedAt: null } }),
     prisma.client.count({ where: { salonId, deletedAt: null, lifecycleStage: 'NEW' } }),
@@ -46,14 +47,17 @@ async function getMetrics(salonId: string) {
       select: { id: true, name: true, status: true, createdAt: true, _count: { select: { recipients: true } } },
     }),
     prisma.template.count({ where: { salonId } }),
-    prisma.campaign.count({ where: { salonId, status: 'COMPLETED' } }),
+    prisma.campaign.findFirst({ where: { salonId, status: 'COMPLETED' } }),
+    prisma.integration.findFirst({ where: { salonId, type: { in: ['WHATSAPP_OFFICIAL', 'WHATSAPP_UNOFFICIAL'] }, status: 'CONNECTED' } }),
   ])
 
   return {
     totalClients, newClients, recurringClients, vipClients, atRiskClients, lostClients,
     messagesSent, messagesFailed, totalCampaigns, activeCampaigns,
     recentClients, recentCampaigns,
-    templateCount, completedCampaigns,
+    templateCount,
+    hasSentCampaign: !!sentCampaign,
+    hasWhatsapp: !!whatsappIntegration,
     retentionRate: totalClients > 0
       ? Math.round(((recurringClients + vipClients) / totalClients) * 100)
       : 0,
@@ -100,9 +104,10 @@ export default async function DashboardPage() {
 
   const onboardingSteps = [
     { label: 'Configurar empresa', href: '/salon', done: true },
+    { label: 'Conectar WhatsApp', href: '/integrations', done: m.hasWhatsapp },
     { label: 'Adicionar clientes', href: '/clients/new', done: m.totalClients > 0 },
     { label: 'Criar template', href: '/templates/new', done: m.templateCount > 0 },
-    { label: 'Enviar primeira campanha', href: '/campaigns/new', done: m.completedCampaigns > 0 },
+    { label: 'Enviar campanha', href: '/campaigns/new', done: m.hasSentCampaign },
   ]
   const completedSteps = onboardingSteps.filter((s) => s.done).length
   const allDone = completedSteps === onboardingSteps.length
@@ -120,7 +125,7 @@ export default async function DashboardPage() {
             <Rocket className="h-5 w-5 text-[#C9A14A]" />
             <div>
               <h2 className="text-sm font-semibold text-white">Primeiros passos</h2>
-              <p className="text-xs text-gray-400">{completedSteps} de {onboardingSteps.length} concluídos</p>
+              <p className="text-xs text-gray-400">{completedSteps} de 5 concluídos</p>
             </div>
           </div>
           <div className="space-y-2">
