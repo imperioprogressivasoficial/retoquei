@@ -99,7 +99,7 @@ export default async function DashboardPage() {
   ]
 
   const onboardingSteps = [
-    { label: 'Configurar salão', href: '/salon', done: true },
+    { label: 'Configurar empresa', href: '/salon', done: true },
     { label: 'Adicionar clientes', href: '/clients/new', done: m.totalClients > 0 },
     { label: 'Criar template', href: '/templates/new', done: m.templateCount > 0 },
     { label: 'Enviar primeira campanha', href: '/campaigns/new', done: m.completedCampaigns > 0 },

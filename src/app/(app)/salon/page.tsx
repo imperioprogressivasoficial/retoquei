@@ -85,7 +85,7 @@ export default function SalonPage() {
     <div className="max-w-lg">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Configurações</h1>
-        <p className="text-gray-400 mt-1">Gerencie seu salão e sua conta</p>
+        <p className="text-gray-400 mt-1">Gerencie sua empresa e sua conta</p>
       </div>
 
       <div className="flex gap-1 mb-6 bg-white/[0.03] border border-white/[0.08] rounded-lg p-1">
@@ -95,7 +95,7 @@ export default function SalonPage() {
             tab === 'salon' ? 'bg-[#C9A14A]/15 text-[#C9A14A]' : 'text-gray-400 hover:text-white'
           }`}
         >
-          <Store className="h-4 w-4" /> Salão
+          <Store className="h-4 w-4" /> Empresa
         </button>
         <button
           onClick={() => setTab('account')}
@@ -129,7 +129,7 @@ export default function SalonPage() {
         <div className="mb-6 flex items-start gap-3 p-4 bg-[#C9A14A]/5 border border-[#C9A14A]/20 rounded-xl">
           <Store className="h-5 w-5 text-[#C9A14A] shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-[#C9A14A]">Configure seu salão</p>
+            <p className="text-sm font-medium text-[#C9A14A]">Configure sua empresa</p>
             <p className="text-xs text-gray-400 mt-0.5">
               Preencha as informações abaixo para começar a usar o Retoquei.
             </p>
@@ -152,7 +152,7 @@ export default function SalonPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-white">Nome do salão *</label>
+            <label className="text-sm font-medium text-white">Nome da empresa *</label>
             <input
               name="name"
               required
@@ -173,12 +173,12 @@ export default function SalonPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-white">E-mail do salão</label>
+            <label className="text-sm font-medium text-white">E-mail da empresa</label>
             <input
               name="email"
               type="email"
               defaultValue={salon?.email ?? ''}
-              placeholder="contato@meusalao.com.br"
+              placeholder="contato@minhaempresa.com.br"
               className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-[#C9A14A]/50 transition-colors"
             />
           </div>
@@ -194,7 +194,7 @@ export default function SalonPage() {
                 Salvando...
               </span>
             ) : (
-              salon ? 'Salvar alterações' : 'Criar salão'
+              salon ? 'Salvar alterações' : 'Criar empresa'
             )}
           </button>
         </form>

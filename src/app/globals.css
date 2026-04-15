@@ -469,4 +469,44 @@ html:not(.dark) .bg-white\/\[0\.03\] {
   .border-gradient-gold {
     border-image: linear-gradient(135deg, #C9A14A, #F0C87A) 1;
   }
+
+  .animate-slide-up {
+    animation: slide-up 0.25s ease-out;
+  }
+}
+
+/* ===== Micro-interactions ===== */
+
+/* Smooth card hover */
+.bg-white\/\[0\.03\] {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Interactive card hover lift */
+a.bg-white\/\[0\.03\]:hover,
+button.bg-white\/\[0\.03\]:hover,
+.hover-lift:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Page transitions */
+main {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* ===== Keyframes ===== */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

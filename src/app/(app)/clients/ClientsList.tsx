@@ -127,7 +127,79 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
 
   return (
     <>
-      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {clients.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 text-sm">
+            Nenhum cliente encontrado.{' '}
+            <Link href="/clients/new" className="text-[#C9A14A] hover:underline">Adicionar o primeiro</Link>
+          </div>
+        ) : (
+          <>
+            <label className="flex items-center gap-2 px-1 text-xs text-gray-500">
+              <input
+                type="checkbox"
+                checked={clients.length > 0 && selected.size === clients.length}
+                onChange={toggleAll}
+                className="w-4 h-4 rounded border-gray-500 text-[#C9A14A] bg-transparent cursor-pointer accent-[#C9A14A]"
+              />
+              Selecionar todos
+            </label>
+            {clients.map((client) => {
+              const stage = STAGE_LABELS[client.lifecycleStage] ?? { label: client.lifecycleStage, color: 'bg-gray-400/15 text-gray-400' }
+              const isSelected = selected.has(client.id)
+              return (
+                <div
+                  key={client.id}
+                  onContextMenu={(e) => onContext(e, client)}
+                  className={`bg-white/[0.03] border rounded-xl p-4 transition-colors ${isSelected ? 'border-[#C9A14A]/50 bg-[#C9A14A]/5' : 'border-white/[0.08]'} ${client.archivedAt ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleItem(client.id)}
+                        className="w-4 h-4 mt-0.5 rounded border-gray-500 text-[#C9A14A] bg-transparent cursor-pointer accent-[#C9A14A]"
+                      />
+                      <div className="min-w-0">
+                        <Link href={`/clients/${client.id}`} className="text-white hover:text-[#C9A14A] transition-colors font-medium text-sm block truncate">
+                          {client.fullName}
+                        </Link>
+                        <p className="text-xs text-gray-400 mt-0.5">{client.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color}`}>{stage.label}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setMenu({ x: rect.right - 170, y: rect.bottom + 4, item: client })
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 ml-7 text-xs text-gray-500">
+                    <span>{client.visitCount} visita{client.visitCount !== 1 ? 's' : ''}</span>
+                    {client.lastVisitAt && (
+                      <>
+                        <span>·</span>
+                        <span>última: {new Date(client.lastVisitAt).toLocaleDateString('pt-BR')}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
+      </div>
+
+      <div className="hidden md:block bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.08]">

@@ -13,19 +13,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: { default: 'Retoquei', template: '%s · Retoquei' },
   description:
-    'Motor de retenção inteligente para salões de beleza. Conecte seu sistema de agendamento, identifique clientes em risco e recupere-os automaticamente via WhatsApp.',
-  keywords: ['salão', 'retenção', 'clientes', 'automação', 'whatsapp', 'CRM', 'beleza'],
+    'Motor de retenção inteligente para empresas de beleza. Conecte seu sistema de agendamento, identifique clientes em risco e recupere-os automaticamente via WhatsApp.',
+  keywords: ['empresa', 'retenção', 'clientes', 'automação', 'whatsapp', 'CRM', 'beleza'],
   icons: { icon: '/icon.png', apple: '/icon.png' },
   openGraph: {
-    title: 'Retoquei | Retenção Inteligente para Salões de Beleza',
-    description: 'Automatize a retenção de clientes no seu salão com WhatsApp e inteligência artificial.',
+    title: 'Retoquei | Retenção Inteligente para Empresas de Beleza',
+    description: 'Automatize a retenção de clientes na sua empresa com WhatsApp e inteligência artificial.',
     type: 'website',
     locale: 'pt_BR',
   },
   twitter: {
     card: 'summary',
     title: 'Retoquei',
-    description: 'Motor de retenção inteligente para salões de beleza.',
+    description: 'Motor de retenção inteligente para empresas de beleza.',
   },
 }
 

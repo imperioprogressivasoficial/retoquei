@@ -91,7 +91,7 @@ export async function PUT(request: Request) {
       orderBy: { createdAt: 'asc' },
     })
 
-    if (!member) return NextResponse.json({ error: 'Salão não encontrado' }, { status: 404 })
+    if (!member) return NextResponse.json({ error: 'Empresa não encontrada' }, { status: 404 })
 
     const salon = await prisma.salon.update({
       where: { id: member.salonId },

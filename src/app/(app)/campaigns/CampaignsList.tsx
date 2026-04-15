@@ -127,7 +127,72 @@ export default function CampaignsList({ campaigns }: { campaigns: Campaign[] }) 
 
   return (
     <>
-      <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {campaigns.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 text-sm">Nenhuma campanha encontrada.</div>
+        ) : (
+          <>
+            <label className="flex items-center gap-2 px-1 text-xs text-gray-500">
+              <input
+                type="checkbox"
+                checked={campaigns.length > 0 && selected.size === campaigns.length}
+                onChange={toggleAll}
+                className="w-4 h-4 rounded border-gray-500 text-[#C9A14A] bg-transparent cursor-pointer accent-[#C9A14A]"
+              />
+              Selecionar todas
+            </label>
+            {campaigns.map((c) => {
+              const st = STATUS_LABELS[c.status] ?? { label: c.status, color: 'bg-gray-400/15 text-gray-400' }
+              const isSelected = selected.has(c.id)
+              return (
+                <div
+                  key={c.id}
+                  onContextMenu={(e) => onContext(e, c)}
+                  className={`bg-white/[0.03] border rounded-xl p-4 transition-colors ${isSelected ? 'border-[#C9A14A]/50 bg-[#C9A14A]/5' : 'border-white/[0.08]'} ${c.archivedAt ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleItem(c.id)}
+                        className="w-4 h-4 mt-0.5 rounded border-gray-500 text-[#C9A14A] bg-transparent cursor-pointer accent-[#C9A14A]"
+                      />
+                      <div className="min-w-0">
+                        <Link href={`/campaigns/${c.id}`} className="text-white hover:text-[#C9A14A] transition-colors font-medium text-sm block truncate">
+                          {c.name}
+                        </Link>
+                        <p className="text-xs text-gray-400 mt-0.5">{c.segment?.name ?? 'Sem segmento'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${st.color}`}>{st.label}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setMenu({ x: rect.right - 170, y: rect.bottom + 4, item: c })
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 ml-7 text-xs text-gray-500">
+                    <span>{c._count.recipients} destinatário{c._count.recipients !== 1 ? 's' : ''}</span>
+                    <span>·</span>
+                    <span>{new Date(c.createdAt).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
+      </div>
+
+      <div className="hidden md:block bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.08]">

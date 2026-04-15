@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { toast } from 'sonner'
 import { Pencil, Trash2, Archive, Loader2 } from 'lucide-react'
 
 interface ContextMenuProps {
@@ -30,6 +32,7 @@ export default function ContextMenu({
   children,
 }: ContextMenuProps) {
   const router = useRouter()
+  const confirm = useConfirm()
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState({ x: 0, y: 0 })
   const [loading, setLoading] = useState<string | null>(null)
@@ -64,20 +67,25 @@ export default function ContextMenu({
   }
 
   async function handleDelete() {
-    const confirmed = window.confirm('Tem certeza que deseja apagar? Esta ação não pode ser desfeita.')
-    if (!confirmed) return
+    const ok = await confirm({
+      title: 'Apagar item?',
+      description: 'Esta ação não pode ser desfeita.',
+      confirmLabel: 'Apagar',
+      variant: 'danger',
+    })
+    if (!ok) return
     setLoading('delete')
     try {
       const res = await fetch(`/api/${resource}/${id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        alert(data.error || 'Erro ao apagar')
+        toast.error(data.error || 'Erro ao apagar')
       } else {
         if (onDeleted) onDeleted()
         else router.refresh()
       }
     } catch {
-      alert('Erro de rede')
+      toast.error('Erro de rede')
     }
     setLoading(null)
     setOpen(false)
@@ -93,13 +101,13 @@ export default function ContextMenu({
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        alert(data.error || 'Erro ao arquivar')
+        toast.error(data.error || 'Erro ao arquivar')
       } else {
         if (onArchived) onArchived()
         else router.refresh()
       }
     } catch {
-      alert('Erro de rede')
+      toast.error('Erro de rede')
     }
     setLoading(null)
     setOpen(false)
