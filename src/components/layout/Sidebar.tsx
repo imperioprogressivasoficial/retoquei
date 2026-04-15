@@ -40,14 +40,22 @@ const navItems = [
 
 interface SidebarProps {
   userEmail?: string
+  onCollapseChange?: (collapsed: boolean) => void
 }
 
-export default function Sidebar({ userEmail }: SidebarProps) {
+export default function Sidebar({ userEmail, onCollapseChange }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { salon } = useSalon()
   const { theme, toggleTheme } = useTheme()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false)
+
+  function toggleCollapse() {
+    const next = !desktopCollapsed
+    setDesktopCollapsed(next)
+    onCollapseChange?.(next)
+  }
 
   async function handleLogout() {
     const supabase = createClient()
@@ -61,12 +69,14 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       {/* Logo / Salon name */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/[0.08]">
         <Image src="/nova-logo-retoquei.svg" alt="Retoquei" width={44} height={44} className="shrink-0" />
-        <div className="overflow-hidden">
-          <p className="text-sm font-semibold text-white truncate">
-            {salon?.name ?? 'Retoquei'}
-          </p>
-          <p className="text-xs text-gray-500 truncate">Painel de gestão</p>
-        </div>
+        {!desktopCollapsed && (
+          <div className="overflow-hidden flex-1">
+            <p className="text-sm font-semibold text-white truncate">
+              {salon?.name ?? 'Retoquei'}
+            </p>
+            <p className="text-xs text-gray-500 truncate">Painel de gestão</p>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -80,15 +90,16 @@ export default function Sidebar({ userEmail }: SidebarProps) {
               href={item.href}
               prefetch={true}
               onClick={() => setMobileOpen(false)}
+              title={desktopCollapsed ? item.label : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 active
                   ? 'bg-[#C9A14A]/15 text-[#C9A14A]'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+              } ${desktopCollapsed ? 'justify-center' : ''}`}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
-              {active && <ChevronRight className="h-3 w-3 ml-auto opacity-60" />}
+              {!desktopCollapsed && <span>{item.label}</span>}
+              {active && !desktopCollapsed && <ChevronRight className="h-3 w-3 ml-auto opacity-60" />}
             </Link>
           )
         })}
@@ -96,29 +107,32 @@ export default function Sidebar({ userEmail }: SidebarProps) {
 
       {/* User footer */}
       <div className="border-t border-white/[0.08] p-3">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg mb-1">
-          <div className="w-7 h-7 rounded-full bg-[#C9A14A]/20 flex items-center justify-center shrink-0">
-            <span className="text-[#C9A14A] text-xs font-semibold">
-              {userEmail?.[0]?.toUpperCase() ?? 'U'}
-            </span>
+        {!desktopCollapsed && (
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg mb-1">
+            <div className="w-7 h-7 rounded-full bg-[#C9A14A]/20 flex items-center justify-center shrink-0">
+              <span className="text-[#C9A14A] text-xs font-semibold">
+                {userEmail?.[0]?.toUpperCase() ?? 'U'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 truncate flex-1">{userEmail}</p>
           </div>
-          <p className="text-xs text-gray-400 truncate flex-1">{userEmail}</p>
-        </div>
-        <div className="flex items-center gap-1">
+        )}
+        <div className={`flex items-center gap-1 ${desktopCollapsed ? 'flex-col' : ''}`}>
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-3 flex-1 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-[#C9A14A] hover:bg-[#C9A14A]/5 transition-colors"
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-[#C9A14A] hover:bg-[#C9A14A]/5 transition-colors ${desktopCollapsed ? 'justify-center w-full' : 'flex-1'}`}
             title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
           >
             {theme === 'dark' ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
-            <span>{theme === 'dark' ? 'Modo claro' : 'Modo escuro'}</span>
+            {!desktopCollapsed && <span>{theme === 'dark' ? 'Modo claro' : 'Modo escuro'}</span>}
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/5 transition-colors"
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/5 transition-colors ${desktopCollapsed ? 'justify-center w-full' : ''}`}
             title="Sair"
           >
             <LogOut className="h-4 w-4 shrink-0" />
+            {!desktopCollapsed && <span>Sair</span>}
           </button>
         </div>
       </div>
@@ -143,11 +157,12 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         </button>
       </div>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay — clique fora para fechar */}
       {mobileOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 bg-black/60"
           onClick={() => setMobileOpen(false)}
+          style={{ pointerEvents: 'auto' }}
         />
       )}
 
@@ -161,7 +176,15 @@ export default function Sidebar({ userEmail }: SidebarProps) {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col w-60 bg-[#0F0F0F] border-r border-white/[0.08]">
+      <aside className={`hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col bg-[#0F0F0F] border-r border-white/[0.08] transition-all duration-200 ${desktopCollapsed ? 'w-16' : 'w-60'}`}>
+        {/* Collapse toggle button */}
+        <button
+          onClick={toggleCollapse}
+          className="absolute -right-3 top-8 z-50 w-6 h-6 rounded-full bg-[#1A1A1A] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-white/20 transition-colors shadow-lg"
+          title={desktopCollapsed ? 'Expandir' : 'Recolher'}
+        >
+          <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${desktopCollapsed ? '' : 'rotate-180'}`} />
+        </button>
         {sidebarContent}
       </aside>
     </>
