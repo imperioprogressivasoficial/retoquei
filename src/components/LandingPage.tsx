@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import RotatingSegment from '@/components/ui/RotatingSegment'
 
 export default function LandingPage() {
   return (
@@ -22,8 +23,8 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="flex flex-col items-center text-center px-6 py-24 max-w-4xl mx-auto">
         <div className="inline-flex items-center gap-2 bg-[#C9A14A]/10 border border-[#C9A14A]/30 text-[#C9A14A] text-xs font-medium px-3 py-1.5 rounded-full mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#C9A14A]" />
-          Automação para salões e barbearias
+          <span className="w-1.5 h-1.5 rounded-full bg-[#C9A14A] animate-pulse" />
+          Automação para&nbsp;<RotatingSegment />
         </div>
         <h1 className="text-4xl md:text-6xl font-bold leading-tight tracking-tight mb-6">
           Recupere clientes.{' '}
