@@ -5,40 +5,50 @@ import { useEffect, useState } from 'react'
 const SEGMENTS = [
   'salões',
   'barbearias',
-  'clínicas de estética',
-  'studios de beleza',
+  'clínicas',
+  'estéticas',
   'spas',
-  'nail designers',
+  'studios',
+  'manicures',
   'dentistas',
-  'personal trainers',
 ]
 
 export default function RotatingSegment() {
   const [index, setIndex] = useState(0)
-  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     const cycle = setInterval(() => {
-      // Fade out
-      setVisible(false)
-      // Swap word + fade in after 250ms
-      setTimeout(() => {
-        setIndex((i) => (i + 1) % SEGMENTS.length)
-        setVisible(true)
-      }, 250)
+      setIndex((i) => (i + 1) % SEGMENTS.length)
     }, 2200)
-
     return () => clearInterval(cycle)
   }, [])
 
   return (
     <span
-      className={`inline-block font-semibold transition-all duration-300 ease-out ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'
-      }`}
+      className="relative inline-grid overflow-hidden align-baseline"
+      style={{ gridTemplateAreas: '"stack"' }}
       aria-live="polite"
     >
-      {SEGMENTS[index]}
+      {SEGMENTS.map((segment, i) => {
+        const isActive = i === index
+        const isPrev = i === (index - 1 + SEGMENTS.length) % SEGMENTS.length
+        return (
+          <span
+            key={segment}
+            style={{ gridArea: 'stack' }}
+            className={`font-semibold whitespace-nowrap transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isActive
+                ? 'opacity-100 translate-y-0'
+                : isPrev
+                ? 'opacity-0 -translate-y-full'
+                : 'opacity-0 translate-y-full'
+            }`}
+            aria-hidden={!isActive}
+          >
+            {segment}
+          </span>
+        )
+      })}
     </span>
   )
 }

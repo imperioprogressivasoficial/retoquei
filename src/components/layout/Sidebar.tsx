@@ -13,7 +13,6 @@ import {
   FileText,
   Plug,
   Store,
-  Rocket,
   Settings,
   LogOut,
   ChevronRight,
@@ -34,7 +33,6 @@ const navItems = [
   { href: '/campaigns', label: 'Campanhas', icon: Megaphone },
   { href: '/templates', label: 'Templates', icon: FileText },
   { href: '/integrations', label: 'Integrações', icon: Plug },
-  { href: '/roadmap', label: 'Roadmap', icon: Rocket },
   { href: '/salon', label: 'Configurações', icon: Settings },
 ]
 
