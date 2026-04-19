@@ -39,10 +39,14 @@ export default async function ClientsPage({
     id: c.id,
     fullName: c.fullName,
     phone: c.phone,
-    lifecycleStage: c.lifecycleStage,
+    birthDate: c.birthDate,
+    createdAt: c.createdAt,
+    lastVisitAt: c.lastVisitAt,
     visitCount: c.visitCount,
-    lastVisitAt: c.lastVisitAt?.toISOString() ?? null,
-    archivedAt: c.archivedAt?.toISOString() ?? null,
+    totalSpent: c.totalSpent,
+    averageTicket: c.averageTicket,
+    lifecycleStage: c.lifecycleStage,
+    archivedAt: c.archivedAt,
   }))
 
   return (

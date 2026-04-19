@@ -11,10 +11,14 @@ interface Client {
   id: string
   fullName: string
   phone: string
-  lifecycleStage: string
+  birthDate: Date | null
+  createdAt: Date
+  lastVisitAt: Date | null
   visitCount: number
-  lastVisitAt: string | null
-  archivedAt: string | null
+  totalSpent: any
+  averageTicket: any
+  lifecycleStage: string
+  archivedAt: Date | null
 }
 
 const STAGE_LABELS: Record<string, { label: string; color: string }> = {
@@ -200,6 +204,7 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
       </div>
 
       <div className="hidden md:block bg-white/[0.03] border border-white/[0.08] rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.08]">
@@ -211,18 +216,21 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
                   className="w-4 h-4 rounded border-gray-500 text-[#C9A14A] focus:ring-[#C9A14A]/50 bg-transparent cursor-pointer accent-[#C9A14A]"
                 />
               </th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Nome</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Telefone</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Estágio</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Visitas</th>
-              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide">Última visita</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Cliente</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Nascimento</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Cadastro</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Último atend.</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Visitas</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Total</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Ticket Médio</th>
+              <th className="text-left px-4 py-3 text-xs text-gray-500 font-medium uppercase tracking-wide whitespace-nowrap">Estágio</th>
               <th className="w-10" />
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.04]">
             {clients.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-12 text-gray-500 text-sm">
+                <td colSpan={10} className="text-center py-12 text-gray-500 text-sm">
                   Nenhum cliente encontrado.{' '}
                   <Link href="/clients/new" className="text-[#C9A14A] hover:underline">Adicionar o primeiro</Link>
                 </td>
@@ -231,6 +239,11 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
               clients.map((client) => {
                 const stage = STAGE_LABELS[client.lifecycleStage] ?? { label: client.lifecycleStage, color: 'bg-gray-400/15 text-gray-400' }
                 const isSelected = selected.has(client.id)
+                const birthDate = client.birthDate ? new Date(client.birthDate).toLocaleDateString('pt-BR') : '—'
+                const createdAt = client.createdAt ? new Date(client.createdAt).toLocaleDateString('pt-BR') : '—'
+                const lastVisit = client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleDateString('pt-BR') : '—'
+                const totalSpent = typeof client.totalSpent === 'number' ? `R$ ${client.totalSpent.toFixed(2)}` : '—'
+                const avgTicket = typeof client.averageTicket === 'number' ? `R$ ${client.averageTicket.toFixed(2)}` : '—'
                 return (
                   <tr
                     key={client.id}
@@ -247,18 +260,19 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <Link href={`/clients/${client.id}`} className="text-white hover:text-[#C9A14A] transition-colors font-medium text-sm">
+                      <Link href={`/clients/${client.id}`} className="text-white hover:text-[#C9A14A] transition-colors font-medium text-sm whitespace-nowrap">
                         {client.fullName}
                       </Link>
                       {client.archivedAt && <span className="ml-2 text-xs text-gray-500">(arquivado)</span>}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-400">{client.phone}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">{birthDate}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">{createdAt}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">{lastVisit}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">{client.visitCount}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">{totalSpent}</td>
+                    <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">{avgTicket}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color}`}>{stage.label}</span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-400">{client.visitCount}</td>
-                    <td className="px-4 py-3 text-sm text-gray-400">
-                      {client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleDateString('pt-BR') : '—'}
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${stage.color} whitespace-nowrap`}>{stage.label}</span>
                     </td>
                     <td className="px-2 py-3">
                       <button
@@ -278,6 +292,7 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Bulk action bar */}
