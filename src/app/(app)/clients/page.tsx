@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import { Plus, Search } from 'lucide-react'
 import ClientsList from './ClientsList'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Clientes' }
 
 export default async function ClientsPage({

@@ -5,6 +5,7 @@ import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import TemplatesList from './TemplatesList'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Templates' }
 
 export default async function TemplatesPage() {
@@ -21,8 +22,8 @@ export default async function TemplatesPage() {
     name: t.name,
     category: t.category,
     content: t.content,
-    archivedAt: t.archivedAt?.toISOString() ?? null,
-    createdAt: t.createdAt.toISOString(),
+    archivedAt: t.archivedAt ? t.archivedAt.toISOString() : null,
+    createdAt: t.createdAt ? t.createdAt.toISOString() : new Date().toISOString(),
   }))
 
   return (

@@ -4,6 +4,7 @@ import { MessageSquare, FileSpreadsheet, ArrowRight, Wifi, WifiOff, ExternalLink
 import { getServerSalon } from '@/lib/auth'
 import CopyWebhookUrl from './CopyWebhookUrl'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Integrações' }
 
 export default async function IntegrationsPage() {

@@ -5,6 +5,7 @@ import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import AutomationsList from './AutomationsList'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Automações' }
 
 export default async function AutomationsPage() {
@@ -22,7 +23,7 @@ export default async function AutomationsPage() {
     name: a.name,
     triggerType: a.triggerType,
     isActive: a.isActive,
-    archivedAt: a.archivedAt?.toISOString() ?? null,
+    archivedAt: a.archivedAt ? a.archivedAt.toISOString() : null,
     templateName: a.template?.name ?? null,
   }))
 

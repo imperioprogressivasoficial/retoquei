@@ -5,6 +5,7 @@ import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import CampaignsList from './CampaignsList'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Campanhas' }
 
 export default async function CampaignsPage() {
@@ -26,8 +27,8 @@ export default async function CampaignsPage() {
     id: c.id,
     name: c.name,
     status: c.status,
-    archivedAt: c.archivedAt?.toISOString() ?? null,
-    createdAt: c.createdAt.toISOString(),
+    archivedAt: c.archivedAt ? c.archivedAt.toISOString() : null,
+    createdAt: c.createdAt ? c.createdAt.toISOString() : new Date().toISOString(),
     segment: c.segment ? { name: c.segment.name } : null,
     _count: c._count,
   }))

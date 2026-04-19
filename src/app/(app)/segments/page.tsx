@@ -5,6 +5,7 @@ import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import SegmentsList from './SegmentsList'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Segmentos' }
 
 export default async function SegmentsPage() {
@@ -29,7 +30,7 @@ export default async function SegmentsPage() {
       name: s.name,
       description: s.description,
       type: s.type,
-      archivedAt: s.archivedAt?.toISOString() ?? null,
+      archivedAt: s.archivedAt ? s.archivedAt.toISOString() : null,
       clientCount: isAllClients ? totalActiveClients : s._count.clients,
     }
   })

@@ -4,6 +4,7 @@ import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { Users, Send, Megaphone, AlertTriangle, TrendingUp, UserPlus, UserMinus, Crown, FileText, Plug, Rocket, CheckCircle2, Circle } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Dashboard' }
 
 async function getMetrics(salonId: string) {
