@@ -1,15 +1,19 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { Send, Loader2 } from 'lucide-react'
+import { Send, Loader2, CheckCheck, Check, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase/client'
 
 interface Message {
   id: string
   content: string
   direction: string
-  createdAt: Date
+  status?: string
+  whatsappMessageId?: string
+  createdAt: string | Date
+  deliveredAt?: string | Date | null
+  readAt?: string | Date | null
 }
 
 interface ChatWindowProps {
@@ -19,11 +23,11 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ chatId, initialMessages, clientName }: ChatWindowProps) {
-  const router = useRouter()
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const supabase = createClient()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -32,6 +36,77 @@ export default function ChatWindow({ chatId, initialMessages, clientName }: Chat
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Subscribe to real-time message updates via Supabase Realtime
+  useEffect(() => {
+    const channel = supabase
+      .channel(`chat:${chatId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `chat_id=eq.${chatId}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            // New message received (from webhook or other user)
+            const newMsg = payload.new as Message
+            setMessages((prev) => {
+              // Avoid duplicates
+              if (prev.find((m) => m.id === newMsg.id)) return prev
+              return [...prev, newMsg]
+            })
+          } else if (payload.eventType === 'UPDATE') {
+            // Message status updated (delivery, read)
+            const updatedMsg = payload.new as Message
+            setMessages((prev) =>
+              prev.map((m) => (m.id === updatedMsg.id ? updatedMsg : m)),
+            )
+          }
+        },
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [chatId, supabase])
+
+  // Render status icon for outbound messages
+  function renderStatusIcon(msg: Message) {
+    if (msg.direction !== 'outbound') return null
+
+    const status = msg.status || 'pending'
+    const iconProps = 'h-3 w-3'
+
+    switch (status) {
+      case 'read':
+        return <CheckCheck className={`${iconProps} text-blue-400`} />
+      case 'delivered':
+        return <CheckCheck className={`${iconProps} text-gray-400`} />
+      case 'sent':
+        return <Check className={`${iconProps} text-gray-400`} />
+      case 'failed':
+        return <AlertCircle className={`${iconProps} text-red-400`} />
+      default:
+        return <Loader2 className={`${iconProps} animate-spin text-gray-400`} />
+    }
+  }
+
+  // Get status text for tooltip
+  function getStatusText(msg: Message): string {
+    const status = msg.status || 'pending'
+    const statusMap: Record<string, string> = {
+      pending: 'Enviando...',
+      sent: 'Enviada',
+      delivered: 'Entregue',
+      read: 'Lida',
+      failed: 'Falha ao enviar',
+    }
+    return statusMap[status] || status
+  }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
@@ -49,7 +124,12 @@ export default function ChatWindow({ chatId, initialMessages, clientName }: Chat
       })
 
       if (!res.ok) {
-        toast.error('Erro ao enviar mensagem')
+        const data = await res.json()
+        if (data.whatsappError) {
+          toast.error(`WhatsApp: ${data.whatsappError}`)
+        } else {
+          toast.error('Erro ao enviar mensagem')
+        }
         setNewMessage(messageText)
         setSending(false)
         return
@@ -57,8 +137,13 @@ export default function ChatWindow({ chatId, initialMessages, clientName }: Chat
 
       const message = await res.json()
       setMessages([...messages, message])
-      toast.success('Mensagem enviada')
-      router.refresh()
+
+      // Show status based on send result
+      if (message.status === 'failed') {
+        toast.warning('Mensagem falhou ao ser enviada via WhatsApp')
+      } else {
+        toast.success('Mensagem enviada')
+      }
     } catch (err) {
       toast.error('Erro ao enviar mensagem')
       setNewMessage(messageText)
@@ -91,12 +176,19 @@ export default function ChatWindow({ chatId, initialMessages, clientName }: Chat
                 }`}
               >
                 <p className="break-words">{msg.content}</p>
-                <p className="text-xs mt-1 opacity-70">
-                  {new Date(msg.createdAt).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
+                <div className="flex items-center gap-1 mt-1 justify-between">
+                  <p className="text-xs opacity-70">
+                    {new Date(msg.createdAt).toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                  {msg.direction === 'outbound' && (
+                    <div title={getStatusText(msg)}>
+                      {renderStatusIcon(msg)}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))
@@ -113,7 +205,7 @@ export default function ChatWindow({ chatId, initialMessages, clientName }: Chat
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Escrever mensagem..."
+          placeholder="Escrever mensagem WhatsApp..."
           disabled={sending}
           className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#C9A14A]/50 focus:bg-white/[0.08] transition-colors disabled:opacity-50"
         />

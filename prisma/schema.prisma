@@ -405,13 +405,16 @@ enum ImportStatus {
 }
 
 model Chat {
-  id               String        @id @default(uuid())
-  salonId          String        @map("salon_id")
-  clientId         String        @map("client_id")
-  lastMessageAt    DateTime?     @map("last_message_at")
-  unreadCount      Int           @default(0) @map("unread_count")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
+  id                    String        @id @default(uuid())
+  salonId               String        @map("salon_id")
+  clientId              String        @map("client_id")
+  whatsappPhoneNumberId String?       @map("whatsapp_phone_number_id") // Meta phone number ID
+  clientPhoneNumber     String?       @map("client_phone_number") // Client's WhatsApp number
+  lastMessageAt         DateTime?     @map("last_message_at")
+  unreadCount           Int           @default(0) @map("unread_count")
+  isWhatsAppConnected   Boolean       @default(false) @map("is_whatsapp_connected")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
 
   salon    Salon      @relation(fields: [salonId], references: [id], onDelete: Cascade)
   client   Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -420,20 +423,27 @@ model Chat {
   @@unique([salonId, clientId])
   @@index([salonId])
   @@index([lastMessageAt])
+  @@index([clientPhoneNumber]) // For matching inbound WhatsApp messages
   @@map("chats")
 }
 
 model ChatMessage {
-  id        String    @id @default(uuid())
-  chatId    String    @map("chat_id")
-  content   String
-  direction String    @default("inbound") // "inbound" or "outbound"
-  readAt    DateTime? @map("read_at")
-  createdAt DateTime  @default(now()) @map("created_at")
+  id                String    @id @default(uuid())
+  chatId            String    @map("chat_id")
+  content           String
+  direction         String    @default("inbound") // "inbound" or "outbound"
+  whatsappMessageId String?   @map("whatsapp_message_id") // Meta message ID for delivery tracking
+  status            String    @default("pending") @map("status") // pending, sent, delivered, read, failed
+  deliveredAt       DateTime? @map("delivered_at")
+  readAt            DateTime? @map("read_at")
+  failedAt          DateTime? @map("failed_at")
+  errorMessage      String?   @map("error_message")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
   @@index([createdAt])
+  @@index([whatsappMessageId]) // For status updates
   @@map("chat_messages")
 }
