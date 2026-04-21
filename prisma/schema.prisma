@@ -55,6 +55,7 @@ model Salon {
   messages     Message[]
   integrations Integration[]
   imports      Import[]
+  chats        Chat[]
 
   @@map("salons")
 }
@@ -110,6 +111,7 @@ model Client {
   messages           Message[]
   segments           ClientSegment[]
   campaignRecipients CampaignRecipient[]
+  chats              Chat[]
 
   @@unique([salonId, phoneNormalized])
   @@index([salonId])
@@ -400,4 +402,38 @@ enum ImportStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+model Chat {
+  id               String        @id @default(uuid())
+  salonId          String        @map("salon_id")
+  clientId         String        @map("client_id")
+  lastMessageAt    DateTime?     @map("last_message_at")
+  unreadCount      Int           @default(0) @map("unread_count")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  salon    Salon      @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  client   Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@unique([salonId, clientId])
+  @@index([salonId])
+  @@index([lastMessageAt])
+  @@map("chats")
+}
+
+model ChatMessage {
+  id        String    @id @default(uuid())
+  chatId    String    @map("chat_id")
+  content   String
+  direction String    @default("inbound") // "inbound" or "outbound"
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([createdAt])
+  @@map("chat_messages")
 }

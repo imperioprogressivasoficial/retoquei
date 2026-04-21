@@ -20,6 +20,7 @@ import {
   X,
   Sun,
   Moon,
+  MessageCircle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSalon } from '@/hooks/useSalon'
@@ -28,6 +29,7 @@ import { useTheme } from '@/components/ui/ThemeProvider'
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/clients', label: 'Clientes', icon: Users },
+  { href: '/chat', label: 'Mensagens', icon: MessageCircle },
   { href: '/segments', label: 'Segmentos', icon: Filter },
   { href: '/automations', label: 'Automações', icon: Zap },
   { href: '/campaigns', label: 'Campanhas', icon: Megaphone },
