@@ -34,6 +34,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       await prisma.automation.update({ where: { id }, data: { archivedAt: new Date() } })
     } else if (body.action === 'unarchive') {
       await prisma.automation.update({ where: { id }, data: { archivedAt: null } })
+    } else if (body.action === 'toggle') {
+      // Toggle isActive status
+      await prisma.automation.update({ where: { id }, data: { isActive: !automation.isActive } })
     }
 
     return NextResponse.json({ success: true })

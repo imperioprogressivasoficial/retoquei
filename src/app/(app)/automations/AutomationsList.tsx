@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Pencil, Trash2, Archive, Loader2, MoreVertical, X } from 'lucide-react'
+import { Pencil, Trash2, Archive, Loader2, MoreVertical, X, Zap } from 'lucide-react'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { toast } from 'sonner'
 
@@ -86,6 +86,53 @@ export default function AutomationsList({ automations }: { automations: Automati
     setMenu(null); setLoading(null); router.refresh()
   }
 
+  async function handleToggleActive(automation: Automation) {
+    setLoading(`toggle-${automation.id}`)
+    try {
+      const res = await fetch(`/api/automations/${automation.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle' }),
+      })
+      if (res.ok) {
+        toast.success(automation.isActive ? 'Automação desativada' : 'Automação ativada')
+        router.refresh()
+      } else {
+        toast.error('Erro ao alternar automação')
+      }
+    } catch (err) {
+      toast.error('Erro ao alternar automação')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleTrigger(automation: Automation) {
+    if (!automation.isActive) {
+      toast.error('Ative a automação primeiro')
+      return
+    }
+    setLoading(`trigger-${automation.id}`)
+    try {
+      const res = await fetch(`/api/automations/${automation.id}/trigger`, {
+        method: 'POST',
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast.success('Automação disparada!', {
+          description: `${data.sentCount} enviada${data.sentCount === 1 ? '' : 's'}${data.failedCount > 0 ? ` · ${data.failedCount} falha${data.failedCount === 1 ? '' : 's'}` : ''}`,
+        })
+        router.refresh()
+      } else {
+        toast.error(data.error || 'Erro ao disparar automação')
+      }
+    } catch (err) {
+      toast.error('Erro ao disparar automação')
+    } finally {
+      setLoading(null)
+    }
+  }
+
   async function handleBulkDelete() {
     const count = selected.size
     const ok = await confirm({
@@ -167,9 +214,16 @@ export default function AutomationsList({ automations }: { automations: Automati
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${a.isActive ? 'bg-emerald-400/15 text-emerald-400' : 'bg-gray-400/15 text-gray-400'}`}>
-                  {a.isActive ? 'Ativa' : 'Inativa'}
-                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleToggleActive(a)
+                  }}
+                  disabled={loading === `toggle-${a.id}`}
+                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer disabled:opacity-50 ${a.isActive ? 'bg-emerald-400/20 text-emerald-300 hover:bg-emerald-400/30' : 'bg-gray-400/15 text-gray-400 hover:bg-gray-400/25'}`}
+                >
+                  {loading === `toggle-${a.id}` ? '...' : a.isActive ? 'Ativa' : 'Inativa'}
+                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
@@ -220,9 +274,20 @@ export default function AutomationsList({ automations }: { automations: Automati
       {menu && (
         <div
           ref={menuRef}
-          className="fixed z-50 min-w-[170px] bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl py-1 text-sm"
+          className="fixed z-50 min-w-[180px] bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl py-1 text-sm"
           style={{ left: menu.x, top: menu.y }}
         >
+          <button
+            onClick={() => {
+              setMenu(null)
+              handleTrigger(menu.item)
+            }}
+            disabled={loading === `trigger-${menu.item.id}` || !menu.item.isActive}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-amber-300 hover:bg-amber-500/10 transition-colors text-left disabled:opacity-50 disabled:text-gray-500"
+          >
+            {loading === `trigger-${menu.item.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            Disparar agora
+          </button>
           <button
             onClick={() => {
               setMenu(null)
