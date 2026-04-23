@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server'
 import { getServerSalon } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { WhatsAppCloudProvider } from '@/services/messaging/whatsapp-cloud.provider'
 
 /**
  * GET /api/chats/[id]/messages - Get messages from a specific chat
- * POST /api/chats/[id]/messages - Send a message via WhatsApp
+ * POST /api/chats/[id]/messages - Send a message via Baileys WhatsApp
  *
+ * Uses Baileys server running on Railway/Render for WhatsApp messaging.
  * Real-time updates via Supabase Realtime on the chat_messages table.
  */
+
+const BAILEYS_URL = process.env.BAILEYS_SERVER_URL || 'http://localhost:3001'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -30,7 +32,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       data: { unreadCount: 0 },
     })
 
-    // Get messages (max 100, most recent first for pagination)
+    // Get messages (max 100)
     const messages = await prisma.chatMessage.findMany({
       where: { chatId: id },
       orderBy: { createdAt: 'asc' },
@@ -64,15 +66,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: 'Chat não encontrado' }, { status: 404 })
     }
 
-    // Check if WhatsApp is configured
-    if (!process.env.WHATSAPP_PHONE_NUMBER_ID || !process.env.WHATSAPP_ACCESS_TOKEN) {
-      return NextResponse.json(
-        { error: 'WhatsApp não configurado' },
-        { status: 503 },
-      )
-    }
-
-    // Get client's WhatsApp number from chat (fallback to client phone)
+    // Get client's WhatsApp number
     const phoneNumber = chat.clientPhoneNumber || chat.client.phone
 
     if (!phoneNumber) {
@@ -82,40 +76,70 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       )
     }
 
-    // Initialize WhatsApp provider
-    const whatsapp = new WhatsAppCloudProvider()
-
-    // Send message via WhatsApp Cloud API
-    let whatsappResult
+    // Check Baileys connection
+    let baileyStatus
     try {
-      whatsappResult = await whatsapp.sendTextMessage(phoneNumber, content.trim())
-    } catch (whatsappErr) {
-      console.error('[Chat] WhatsApp send error:', whatsappErr)
-      whatsappResult = { success: false, error: 'Falha ao enviar via WhatsApp' }
+      const res = await fetch(`${BAILEYS_URL}/api/status`)
+      baileyStatus = await res.json()
+    } catch (err) {
+      console.error('[Chat] Baileys connection check failed:', err)
+      return NextResponse.json(
+        { error: 'Servidor WhatsApp desconectado' },
+        { status: 503 },
+      )
     }
 
-    // Create message record in database
+    if (!baileyStatus.connected) {
+      return NextResponse.json(
+        { error: 'WhatsApp não está conectado. Escaneie o QR code.' },
+        { status: 503 },
+      )
+    }
+
+    // Send message via Baileys
+    let sendResult
+    try {
+      const res = await fetch(`${BAILEYS_URL}/api/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: phoneNumber,
+          message: content.trim(),
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Falha ao enviar')
+      }
+
+      sendResult = await res.json()
+    } catch (err: any) {
+      console.error('[Chat] Baileys send error:', err)
+      sendResult = { success: false, error: err.message }
+    }
+
+    // Create message record
     const message = await prisma.chatMessage.create({
       data: {
         chatId: id,
         content: content.trim(),
         direction: 'outbound',
-        whatsappMessageId: whatsappResult.providerMessageId,
-        status: whatsappResult.success ? 'sent' : 'failed',
-        errorMessage: whatsappResult.error,
+        whatsappMessageId: sendResult.messageId,
+        status: sendResult.success ? 'sent' : 'failed',
+        errorMessage: sendResult.error,
       },
     })
 
-    // Update chat last message
+    // Update chat
     await prisma.chat.update({
       where: { id },
       data: { lastMessageAt: new Date() },
     })
 
-    // If send failed, return with error but still return the message record
-    if (!whatsappResult.success) {
+    if (!sendResult.success) {
       return NextResponse.json(
-        { ...message, whatsappError: whatsappResult.error },
+        { ...message, baileyError: sendResult.error },
         { status: 201 },
       )
     }
