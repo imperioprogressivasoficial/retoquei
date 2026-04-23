@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Plus, FileText } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { Tooltip } from '@/components/ui/Tooltip'
 import TemplatesList from './TemplatesList'
 
 export const dynamic = 'force-dynamic'
@@ -33,13 +34,15 @@ export default async function TemplatesPage() {
           <h1 className="text-2xl font-bold text-white">Templates</h1>
           <p className="text-gray-400 mt-1">{templates.length} templates criados</p>
         </div>
-        <Link
-          href="/templates/new"
-          className="flex items-center gap-2 bg-[#C9A14A] text-black font-semibold px-4 py-2.5 rounded-lg text-sm hover:bg-[#b8903e] transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Novo template
-        </Link>
+        <Tooltip content="Crie um novo template para suas campanhas de WhatsApp" side="left">
+          <Link
+            href="/templates/new"
+            className="flex items-center gap-2 bg-[#C9A14A] text-black font-semibold px-4 py-2.5 rounded-lg text-sm hover:bg-[#b8903e] transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Novo template
+          </Link>
+        </Tooltip>
       </div>
 
       {templates.length === 0 ? (

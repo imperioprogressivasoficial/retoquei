@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Pencil, Trash2, Archive, Loader2, MoreVertical, X } from 'lucide-react'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { toast } from 'sonner'
 
 interface Template {
@@ -22,6 +23,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   BIRTHDAY: 'Aniversário',
   UPSELL: 'Upsell',
   CUSTOM: 'Personalizado',
+}
+
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  REACTIVATION: 'Mensagens para trazer clientes inativos de volta',
+  POST_VISIT: 'Mensagens enviadas após uma visita',
+  BIRTHDAY: 'Mensagens de parabéns de aniversário',
+  UPSELL: 'Mensagens para sugerir novos serviços',
+  CUSTOM: 'Template personalizado para seus casos especiais',
 }
 
 export default function TemplatesList({ templates }: { templates: Template[] }) {
@@ -157,23 +166,29 @@ export default function TemplatesList({ templates }: { templates: Template[] }) 
                   className="w-4 h-4 rounded border-gray-500 text-[#C9A14A] focus:ring-[#C9A14A]/50 bg-transparent cursor-pointer accent-[#C9A14A]"
                 />
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  setMenu({ x: rect.right - 170, y: rect.bottom + 4, item: t })
-                }}
-                className="absolute top-3 right-3 p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </button>
+              <Tooltip content="Mais ações" side="left">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setMenu({ x: rect.right - 170, y: rect.bottom + 4, item: t })
+                  }}
+                  className="absolute top-3 right-3 p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+              </Tooltip>
               <div className="flex items-start justify-between mb-3 pl-6">
                 <div>
                   <h3 className="font-semibold text-white">
                     {t.name}
                     {t.archivedAt && <span className="ml-2 text-xs text-gray-500 font-normal">(arquivado)</span>}
                   </h3>
-                  <span className="text-xs text-gray-500 mt-0.5">{CATEGORY_LABELS[t.category] ?? t.category}</span>
+                  <Tooltip content={CATEGORY_DESCRIPTIONS[t.category] ?? t.category} side="top">
+                    <span className="text-xs text-gray-500 mt-0.5 cursor-help border-b border-dotted border-gray-500">
+                      {CATEGORY_LABELS[t.category] ?? t.category}
+                    </span>
+                  </Tooltip>
                 </div>
               </div>
               <p className="text-sm text-gray-400 line-clamp-3">{t.content}</p>
