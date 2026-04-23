@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Pencil, Trash2, Archive, Loader2, MoreVertical, X } from 'lucide-react'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { toast } from 'sonner'
 
 interface Campaign {

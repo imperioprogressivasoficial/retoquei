@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { MessageSquare, FileSpreadsheet, ArrowRight, Wifi, WifiOff, ExternalLink } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import CopyWebhookUrl from './CopyWebhookUrl'
+import { IntegrationsLoading } from './IntegrationsLoading'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Integrações' }
@@ -15,13 +17,14 @@ export default async function IntegrationsPage() {
   const webhookTrinks = `${baseUrl}/api/webhooks/leads?salon_id=${salon.id}&source=trinks`
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Integrações</h1>
-        <p className="text-gray-400 mt-1">Conecte seu WhatsApp e importe seus clientes</p>
-      </div>
+    <Suspense fallback={<IntegrationsLoading />}>
+      <div>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-white">Integrações</h1>
+          <p className="text-gray-400 mt-1">Conecte seu WhatsApp e importe seus clientes</p>
+        </div>
 
-      <div className="grid gap-6">
+        <div className="grid gap-6">
         {/* WhatsApp — Card principal grande */}
         <Link
           href="/integrations/whatsapp"
@@ -124,6 +127,7 @@ export default async function IntegrationsPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </Suspense>
   )
 }

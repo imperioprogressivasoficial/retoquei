@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { Plus, Megaphone } from 'lucide-react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import CampaignsList from './CampaignsList'
+import { CampaignsLoading } from './CampaignsLoading'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Campanhas' }
@@ -62,7 +64,9 @@ export default async function CampaignsPage() {
           </Link>
         </div>
       ) : (
-        <CampaignsList campaigns={data} />
+        <Suspense fallback={<CampaignsLoading />}>
+          <CampaignsList campaigns={data} />
+        </Suspense>
       )}
     </div>
   )
