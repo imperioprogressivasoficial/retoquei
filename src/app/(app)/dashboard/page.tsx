@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { Users, Send, Megaphone, AlertTriangle, TrendingUp, UserPlus, UserMinus, Crown, FileText, Plug, Rocket, CheckCircle2, Circle } from 'lucide-react'
+import { DashboardLoading } from './DashboardLoading'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Dashboard' }
@@ -113,6 +115,26 @@ export default async function DashboardPage() {
   const completedSteps = onboardingSteps.filter((s) => s.done).length
   const allDone = completedSteps === onboardingSteps.length
 
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent metrics={m} salon={salon} onboardingSteps={onboardingSteps} completedSteps={completedSteps} allDone={allDone} />
+    </Suspense>
+  )
+}
+
+async function DashboardContent({
+  metrics: m,
+  salon,
+  onboardingSteps,
+  completedSteps,
+  allDone,
+}: {
+  metrics: any
+  salon: any
+  onboardingSteps: any
+  completedSteps: number
+  allDone: boolean
+}) {
   return (
     <div>
       <div className="mb-6 sm:mb-8">

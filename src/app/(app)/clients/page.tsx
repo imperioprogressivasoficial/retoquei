@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { getServerSalon } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { Plus, Search } from 'lucide-react'
 import ClientsList from './ClientsList'
+import { ClientsLoading } from './ClientsLoading'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Clientes' }
@@ -96,7 +98,9 @@ export default async function ClientsPage({
         </button>
       </form>
 
-      <ClientsList clients={data} />
+      <Suspense fallback={<ClientsLoading />}>
+        <ClientsList clients={data} />
+      </Suspense>
     </div>
   )
 }
