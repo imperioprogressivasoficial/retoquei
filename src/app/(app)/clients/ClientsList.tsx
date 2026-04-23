@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Trash2, Archive, Loader2, MoreVertical, X } from 'lucide-react'
+import { Pencil, Trash2, Archive, Loader2, MoreVertical, X, Users } from 'lucide-react'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { toast } from 'sonner'
 
@@ -127,6 +127,37 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
     setSelected(new Set())
     setBulkLoading(false)
     router.refresh()
+  }
+
+  async function handleCreateSegment() {
+    const count = selected.size
+    const segmentName = prompt(`Criar segmento com ${count} cliente(s). Nome do segmento:`)
+    if (!segmentName) return
+
+    setBulkLoading(true)
+    try {
+      const res = await fetch('/api/segments/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: segmentName,
+          customerIds: Array.from(selected),
+        }),
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        toast.error(error.error || 'Erro ao criar segmento')
+        return
+      }
+      const data = await res.json()
+      toast.success(`Segmento "${data.segment.name}" criado com ${data.segment.customerCount} cliente(s)`)
+      setSelected(new Set())
+      router.push('/segments')
+    } catch (error) {
+      toast.error('Erro ao criar segmento')
+    } finally {
+      setBulkLoading(false)
+    }
   }
 
   return (
@@ -297,13 +328,21 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
 
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-[#1A1A1A] border border-white/10 rounded-xl px-5 py-3 shadow-2xl animate-fade-in">
-          <span className="text-sm text-gray-400 font-medium">{selected.size} selecionado(s)</span>
-          <div className="w-px h-5 bg-white/10" />
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-[#1A1A1A] border border-white/10 rounded-xl px-5 py-3 shadow-2xl animate-fade-in overflow-x-auto max-w-[90vw]">
+          <span className="text-sm text-gray-400 font-medium whitespace-nowrap">{selected.size} selecionado(s)</span>
+          <div className="w-px h-5 bg-white/10 shrink-0" />
+          <button
+            onClick={handleCreateSegment}
+            disabled={bulkLoading}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[#C9A14A] hover:bg-[#C9A14A]/10 transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
+          >
+            {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Users className="h-3.5 w-3.5" />}
+            Criar Segmento
+          </button>
           <button
             onClick={handleBulkArchive}
             disabled={bulkLoading}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
           >
             {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Archive className="h-3.5 w-3.5" />}
             Arquivar
@@ -311,15 +350,15 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
           <button
             onClick={handleBulkDelete}
             disabled={bulkLoading}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
           >
             {bulkLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
             Apagar
           </button>
-          <div className="w-px h-5 bg-white/10" />
+          <div className="w-px h-5 bg-white/10 shrink-0" />
           <button
             onClick={() => setSelected(new Set())}
-            className="p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            className="p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors shrink-0"
           >
             <X className="h-4 w-4" />
           </button>
