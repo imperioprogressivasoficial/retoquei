@@ -132,7 +132,10 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
   async function handleCreateSegment() {
     const count = selected.size
     const segmentName = prompt(`Criar segmento com ${count} cliente(s). Nome do segmento:`)
-    if (!segmentName) return
+    if (!segmentName || !segmentName.trim()) {
+      toast.error('Nome do segmento é obrigatório')
+      return
+    }
 
     setBulkLoading(true)
     try {
@@ -140,21 +143,41 @@ export default function ClientsList({ clients }: { clients: Client[] }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: segmentName,
-          customerIds: Array.from(selected),
+          name: segmentName.trim(),
+          clientIds: Array.from(selected), // Use clientIds to match API
         }),
       })
+
       if (!res.ok) {
-        const error = await res.json()
-        toast.error(error.error || 'Erro ao criar segmento')
+        let errorMessage = 'Erro ao criar segmento'
+        try {
+          const errorData = await res.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          errorMessage = `Erro ${res.status}: ${res.statusText}`
+        }
+        toast.error(errorMessage)
+        console.error('[Segment Creation] Error:', errorMessage)
         return
       }
+
       const data = await res.json()
+      if (!data.success) {
+        toast.error(data.error || 'Erro ao criar segmento')
+        return
+      }
+
       toast.success(`Segmento "${data.segment.name}" criado com ${data.segment.customerCount} cliente(s)`)
       setSelected(new Set())
-      router.push('/segments')
+
+      // Navigate to segments page after a short delay to ensure success is visible
+      setTimeout(() => {
+        router.push('/segments')
+      }, 1000)
     } catch (error) {
-      toast.error('Erro ao criar segmento')
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      toast.error(`Erro ao criar segmento: ${errorMessage}`)
+      console.error('[Segment Creation] Exception:', error)
     } finally {
       setBulkLoading(false)
     }
